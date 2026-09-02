@@ -28,7 +28,7 @@ Read in this order:
 8. [`docs/08-REQUIREMENTS-TRACEABILITY.md`](docs/08-REQUIREMENTS-TRACEABILITY.md) — map from proposal objectives/research questions to engineering and evaluation evidence.
 9. [`docs/09-CONFIGURATION-DEFAULTS.md`](docs/09-CONFIGURATION-DEFAULTS.md) — initial ports, request ceilings, evidence limits and scan-profile defaults.
 10. [`docs/07-IMPLEMENTATION-PLAN.md`](docs/07-IMPLEMENTATION-PLAN.md) — canonical P0–P10 build sequence and acceptance gates.
-11. [`docs/09-REPOSITORY-AND-DELIVERY.md`](docs/09-REPOSITORY-AND-DELIVERY.md) — repository layout, Git/CI model and AntiGravity handoff workflow.
+11. [`docs/10-REPOSITORY-AND-DELIVERY.md`](docs/10-REPOSITORY-AND-DELIVERY.md) — repository layout, Git/CI model and AntiGravity handoff workflow.
 12. [`AGENTS.md`](AGENTS.md) — mandatory AntiGravity/AI-agent execution contract.
 
 ## Planned architecture
