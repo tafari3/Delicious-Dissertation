@@ -18,10 +18,11 @@ When instructions conflict, use this order:
 6. `docs/01-ARCHITECTURE.md`;
 7. `docs/05-DATA-AND-REPORTING.md`;
 8. `docs/03-USER-JOURNEYS.md`;
-9. `docs/09-CONFIGURATION-DEFAULTS.md` for initial operational defaults;
-10. `docs/07-IMPLEMENTATION-ROADMAP.md`;
-11. `docs/08-REPOSITORY-AND-DELIVERY.md`;
-12. implementation code/tests.
+9. `docs/08-REQUIREMENTS-TRACEABILITY.md`;
+10. `docs/09-CONFIGURATION-DEFAULTS.md` for initial operational defaults;
+11. `docs/07-IMPLEMENTATION-PLAN.md`;
+12. `docs/09-REPOSITORY-AND-DELIVERY.md`;
+13. implementation code/tests.
 
 If code and documentation disagree, do not silently redefine the requirement in code. Fix the implementation or explicitly update the design in the same reviewed change when the proposal permits it.
 
@@ -52,7 +53,7 @@ If a requested implementation would break one of these, stop that change and pre
 
 ## 5. Work mode
 
-Follow `docs/07-IMPLEMENTATION-ROADMAP.md` sequentially unless an issue/PR explicitly states a narrower current phase.
+Follow `docs/07-IMPLEMENTATION-PLAN.md` sequentially unless an issue/PR explicitly states a narrower current phase.
 
 At the start of work:
 
@@ -202,4 +203,4 @@ Until Phase 0 is merged, do not start scanner implementation.
 
 After Phase 0 merges, begin **P1 — Repository/runtime foundation** from exact `main` unless a newer active phase issue/branch explicitly defines a narrower boundary.
 
-Do not start P5 vulnerability-rule implementation before P4 controlled HTTP execution, scope enforcement and identity/session foundations exist and pass their safety gates.
+Do not start P5 authorisation-rule implementation before P4 controlled HTTP execution, scope enforcement and identity/session foundations exist and pass their safety gates.
