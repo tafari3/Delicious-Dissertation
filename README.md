@@ -12,33 +12,38 @@ The project is evaluated against deliberately vulnerable synthetic Zimbabwean fi
 
 **Phase 0 — implementation blueprint.**
 
-No scanner implementation should begin until the Phase-0 planning package is merged. After that, AntiGravity should begin **P1 — Repository and runtime foundation** and follow the phase gates in `docs/06-IMPLEMENTATION-PLAN.md`.
+No scanner implementation should begin until the Phase-0 planning package is merged. After that, AntiGravity begins **P1 — Repository and runtime foundation** from exact `main` and follows `docs/07-IMPLEMENTATION-PLAN.md`.
 
 ## Authoritative planning documents
 
 Read in this order:
 
-1. [`docs/00-PROJECT-CHARTER.md`](docs/00-PROJECT-CHARTER.md) — locked scope, research questions, safety invariants and completion definition.
-2. [`docs/02-TEST-CATALOGUE.md`](docs/02-TEST-CATALOGUE.md) — exact bounded scanner rule catalogue and result semantics.
+1. [`docs/00-PROJECT-CHARTER.md`](docs/00-PROJECT-CHARTER.md) — locked project scope, research questions and completion definition.
+2. [`docs/06-SAFETY-SECURITY-MODEL.md`](docs/06-SAFETY-SECURITY-MODEL.md) — hard safety, ethics, scope and evidence invariants.
 3. [`docs/01-ARCHITECTURE.md`](docs/01-ARCHITECTURE.md) — component boundaries, controlled HTTP execution, identity, inventory and evidence architecture.
-4. [`docs/03-USER-JOURNEYS.md`](docs/03-USER-JOURNEYS.md) — operator/dashboard/CLI flows and safety preflight UX.
-5. [`docs/04-LABS-AND-EVALUATION.md`](docs/04-LABS-AND-EVALUATION.md) — three-stack laboratories, ground truth, OWASP ZAP baseline and research metrics.
-6. [`docs/05-DATA-AND-REPORTING.md`](docs/05-DATA-AND-REPORTING.md) — persistence, redaction, evidence and report schemas.
-7. [`docs/06-IMPLEMENTATION-PLAN.md`](docs/06-IMPLEMENTATION-PLAN.md) — phased build sequence and acceptance gates.
-8. [`docs/07-REQUIREMENTS-TRACEABILITY.md`](docs/07-REQUIREMENTS-TRACEABILITY.md) — map from proposal commitments/research questions to engineering evidence.
-9. [`AGENTS.md`](AGENTS.md) — mandatory AntiGravity/AI-agent execution contract.
+4. [`docs/02-TEST-CATALOGUE.md`](docs/02-TEST-CATALOGUE.md) — bounded scanner rules, proof conditions, result semantics and stop conditions.
+5. [`docs/03-USER-JOURNEYS.md`](docs/03-USER-JOURNEYS.md) — operator/dashboard/CLI workflows and safety-preflight UX.
+6. [`docs/04-LABS-AND-EVALUATION.md`](docs/04-LABS-AND-EVALUATION.md) — three-stack laboratories, independent ground truth, OWASP ZAP baseline and research metrics.
+7. [`docs/05-DATA-AND-REPORTING.md`](docs/05-DATA-AND-REPORTING.md) — persistence, redaction, evidence, findings and report schemas.
+8. [`docs/08-REQUIREMENTS-TRACEABILITY.md`](docs/08-REQUIREMENTS-TRACEABILITY.md) — map from proposal objectives/research questions to engineering and evaluation evidence.
+9. [`docs/09-CONFIGURATION-DEFAULTS.md`](docs/09-CONFIGURATION-DEFAULTS.md) — initial ports, request ceilings, evidence limits and scan-profile defaults.
+10. [`docs/07-IMPLEMENTATION-PLAN.md`](docs/07-IMPLEMENTATION-PLAN.md) — canonical P0–P10 build sequence and acceptance gates.
+11. [`docs/09-REPOSITORY-AND-DELIVERY.md`](docs/09-REPOSITORY-AND-DELIVERY.md) — repository layout, Git/CI model and AntiGravity handoff workflow.
+12. [`AGENTS.md`](AGENTS.md) — mandatory AntiGravity/AI-agent execution contract.
 
 ## Planned architecture
 
-- Python 3.12+ scanner core;
+- Python scanner/application core;
 - `httpx` controlled HTTP executor;
-- Pydantic domain/configuration models;
+- typed Pydantic configuration/domain models;
 - SQLAlchemy + SQLite local evidence store;
 - FastAPI local application surface;
 - Typer CLI;
 - lightweight server-rendered dashboard;
 - Docker Compose laboratory environment;
-- FastAPI, Express and Spring Boot synthetic API labs;
+- FastAPI mobile-money laboratory;
+- Express revenue/tax laboratory;
+- Spring Boot citizen-services laboratory;
 - OWASP ZAP comparative baseline;
 - JSON/CSV/HTML evidence and evaluation exports.
 
@@ -50,19 +55,23 @@ The scanner must not depend on cloud services, LLM APIs or target source code.
 Delicious-Dissertation/
 ├── AGENTS.md
 ├── README.md
+├── pyproject.toml
+├── Makefile
+├── docker-compose.yml
 ├── docs/
-├── scanner/
+├── src/delicious_scanner/
+├── tests/
 ├── labs/
-│   ├── mobile-money/
-│   ├── revenue-tax/
-│   └── citizen-services/
+│   ├── mobile-money-fastapi/
+│   ├── revenue-express/
+│   └── citizen-services-spring/
 ├── evaluation/
 ├── scripts/
-├── .github/workflows/
-└── Makefile
+├── migrations/
+└── .github/workflows/
 ```
 
-Implementation directories are created in P1/P4 when their acceptance criteria become active; Phase 0 intentionally establishes the contract before scaffolding code.
+Implementation directories are created when their phase becomes active; Phase 0 intentionally establishes the contract before scaffolding product code.
 
 ## Safety boundary
 
@@ -71,27 +80,27 @@ Hard invariants include:
 - explicit target allow-listing;
 - redirect scope validation;
 - hard request/rate ceilings;
+- one controlled HTTP execution path;
 - non-destructive default profile;
 - disposable fixtures for controlled write tests;
 - proof-of-condition stopping;
 - credential/token/cookie redaction before persistence/export;
 - no credential stuffing, password spraying, destructive/unrestricted fuzzing or DoS testing.
 
-## Implementation sequence
+## Canonical implementation sequence
 
 ```text
-P0 Blueprint
- -> P1 Foundation
- -> P2 Safety/Persistence
- -> P3 Specification/Inventory
- -> P4 Labs/Ground Truth
- -> P5 Controlled HTTP/Identities
- -> P6 Authorisation Engine
- -> P7 Remaining Rules
- -> P8 Evidence/Reporting
- -> P9 Dashboard/CLI
- -> P10 Evaluation/ZAP
- -> P11 Hardening/Final Research Release
+P0  Blueprint / source of truth
+P1  Repository and runtime foundation
+P2  Laboratory suite and independent ground truth
+P3  Specification ingestion and endpoint inventory
+P4  Safety, persistence, identity and controlled HTTP execution
+P5  Authorisation engine
+P6  Authentication/configuration/inventory/resource rules
+P7  Evidence, findings and reporting
+P8  Dashboard and CLI completion
+P9  Evaluation harness and OWASP ZAP baseline
+P10 Final hardening, repeated experiments and research release
 ```
 
-AntiGravity must follow `AGENTS.md` and the current phase acceptance criteria rather than improvising product scope.
+AntiGravity must follow `AGENTS.md`, the current phase issue and the exact phase acceptance criteria rather than improvising product scope.
