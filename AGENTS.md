@@ -21,7 +21,7 @@ When instructions conflict, use this order:
 9. `docs/08-REQUIREMENTS-TRACEABILITY.md`;
 10. `docs/09-CONFIGURATION-DEFAULTS.md` for initial operational defaults;
 11. `docs/07-IMPLEMENTATION-PLAN.md`;
-12. `docs/09-REPOSITORY-AND-DELIVERY.md`;
+12. `docs/10-REPOSITORY-AND-DELIVERY.md`;
 13. implementation code/tests.
 
 If code and documentation disagree, do not silently redefine the requirement in code. Fix the implementation or explicitly update the design in the same reviewed change when the proposal permits it.
