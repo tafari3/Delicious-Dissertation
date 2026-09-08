@@ -2,229 +2,216 @@
 
 ## 1. Purpose
 
-The dissertation must evaluate the scanner against known ground truth, not against unknown live systems. The laboratory suite is therefore a first-class research artefact, not merely demo infrastructure.
+The dissertation evaluates the scanner against known, independently defined ground truth rather than unknown live systems. The laboratory suite is therefore a first-class research artefact, not merely demonstration infrastructure.
 
-The labs must prove that the scanner is cross-platform at the HTTP boundary and permit repeatable measurement of true positives, false positives and false negatives.
+The laboratories must permit repeatable measurement of detection performance, false-positive behaviour, cross-stack portability and evidence reproducibility while using synthetic data only.
 
-## 2. Required laboratory stacks
+The detailed lab contract is frozen in `docs/13-LAB-EXPERIMENT-SPECIFICATION.md` and takes precedence over examples in this document.
 
-The initial locked stacks are:
+## 2. Required laboratory stacks and scenarios
 
-1. **Python / FastAPI** — Mobile Money scenario;
-2. **Node.js / Express** — Revenue/Tax scenario;
-3. **Java / Spring Boot** — Citizen Services scenario.
+The current locked mapping is:
 
-The scenario-to-stack mapping may be swapped later only if the total set still contains three materially different server implementation stacks.
+1. **Python / FastAPI** — Citizen Records API;
+2. **Node.js / Express** — Public Health Records API;
+3. **Java / Spring Boot** — Permit & Licensing API.
+
+The scenario-to-stack mapping may be changed only through a reviewed design change if the total set still contains three materially different server implementation stacks and the academic baseline remains satisfied.
 
 ## 3. Common laboratory contract
 
 Every lab must provide:
 
-- Dockerfile;
+- Dockerfile/build definition;
 - health endpoint;
+- deterministic lab metadata including lab ID/version/mode;
 - OpenAPI description or equivalent import artefact;
 - deterministic seed/reset procedure;
 - synthetic fixtures only;
 - controlled identities and roles;
 - vulnerable and corrected modes/versions;
-- machine-readable ground truth;
+- machine-readable independent ground truth;
 - stable fixture identifiers where authorisation tests require them;
-- test endpoint/base URL configuration;
+- direct functional tests proving vulnerable and corrected behaviour without using scanner detection logic;
 - no dependency on external production services.
 
-## 4. Scenario A — Mobile Money API
+Canonical vulnerable laboratories publish to loopback only and run without privileged containers, host networking or Docker-socket access.
 
-### Representative entities
+## 4. Scenario A — Citizen Records API
 
-- user/customer;
-- wallet;
-- beneficiary;
-- transfer;
-- transaction history;
-- agent/support/admin operation where required for BFLA.
+**Lab ID:** `citizen-records-fastapi`
 
-### Suggested roles
-
-- `customer-a`;
-- `customer-b`;
-- `support-agent`;
-- `admin`.
-
-### Candidate seeded weaknesses
-
-Use a controlled subset aligned with the scanner catalogue:
-
-- BOLA read: customer A can read customer B wallet/transaction object by identifier;
-- BOLA mutation: customer A can alter a disposable beneficiary or transfer metadata belonging to B;
-- BOPLA: customer can set a protected property such as an internal status/limit flag on a disposable object;
-- missing authentication on one protected route;
-- verbose error leakage on a malformed-but-bounded parameter;
-- CORS weakness;
-- one undocumented/deprecated endpoint for inventory comparison;
-- bounded rate-limit weakness/behaviour on a safe idempotent lookup or synthetic action.
-
-The lab must not simulate irreversible monetary loss. All transfers are synthetic and disposable.
-
-## 5. Scenario B — Revenue/Tax API
-
-### Representative entities
-
-- taxpayer profile;
-- tax account;
-- obligation;
-- return/payment record;
-- officer case/action;
-- administrative configuration/report endpoint.
-
-### Suggested roles
-
-- `taxpayer-a`;
-- `taxpayer-b`;
-- `revenue-officer`;
-- `admin`.
-
-### Candidate seeded weaknesses
-
-- BOLA on taxpayer/obligation lookup;
-- BFLA where taxpayer can invoke officer-only operation using a harmless disposable record;
-- sensitive property exposure in profile/account response;
-- mass assignment on a protected status/property;
-- inconsistent authentication between sibling endpoints;
-- risky/unexpected HTTP method on a disposable resource;
-- exposed API documentation with non-public operation metadata;
-- specification/live inventory mismatch.
-
-## 6. Scenario C — Citizen Services API
-
-### Representative entities
-
-- citizen profile;
-- application/request;
-- service record;
-- case note/status;
-- officer/admin workflow.
-
-### Suggested roles
+Representative roles:
 
 - `citizen-a`;
 - `citizen-b`;
-- `case-officer`;
+- `registry-officer`;
 - `admin`.
 
-### Candidate seeded weaknesses
+Representative entities:
 
-- cross-citizen profile/application read;
-- cross-citizen disposable update;
-- low-privilege access to case-officer/admin function;
-- protected property exposure;
-- expired/revoked controlled session accepted;
-- security-header/TLS observations appropriate to local HTTPS mode where implemented;
-- verbose error leak;
-- documented endpoint absent or undocumented endpoint present.
+- citizen profile;
+- contact/address information;
+- service application/request;
+- verification state;
+- officer case-management information.
 
-## 7. Ground-truth manifest
+Seeded cases include controlled BOLA read/mutation, BFLA, protected-property write, missing authentication and an inventory mismatch as specified in `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`.
 
-Each lab must have a manifest under a path such as:
+No real citizen identity or production record is used.
+
+## 5. Scenario B — Public Health Records API
+
+**Lab ID:** `public-health-express`
+
+Representative roles:
+
+- `patient-a`;
+- `patient-b`;
+- `clinician`;
+- `records-officer`;
+- `admin`.
+
+Representative entities:
+
+- patient profile;
+- appointment;
+- laboratory result;
+- synthetic clinical record/summary;
+- administrative records fields.
+
+Seeded cases include controlled BOLA, BFLA, protected-property exposure/write, deterministic token/session behaviour and bounded error leakage as specified in the laboratory experiment specification.
+
+All health data is explicitly synthetic.
+
+## 6. Scenario C — Permit & Licensing API
+
+**Lab ID:** `permit-licensing-spring`
+
+Representative roles:
+
+- `applicant-a`;
+- `applicant-b`;
+- `processing-officer`;
+- `supervisor`;
+- `admin`.
+
+Representative entities:
+
+- permit/licence application;
+- supporting document metadata;
+- application status;
+- licence/permit record;
+- processing note;
+- approval action.
+
+Seeded cases include controlled BOLA read/mutation, BFLA approval, mass assignment/protected-property write, inconsistent authentication and documentation exposure as specified in the laboratory experiment specification.
+
+## 7. Representative, not replica
+
+The labs reproduce common public-service access-control relationships for research. They do **not** claim to reproduce the internal architecture, endpoints, databases, security posture or implementation of any named Zimbabwean ministry, agency, department or ZCHPC service.
+
+Evaluation results apply to the research artefact and the controlled test environments only.
+
+## 8. Ground-truth manifest
+
+Each lab must have a version-controlled manifest such as:
 
 ```text
-labs/<lab>/ground-truth/manifest.yaml
+labs/<lab-id>/ground-truth/manifest.yaml
 ```
 
-Recommended schema:
+Ground truth describes intended service security behaviour and its paired vulnerable/corrected cases. It must not contain scanner heuristic expectations beyond the stable scanner rule ID used for deterministic matching.
 
-```yaml
-lab_id: mobile-money-fastapi
-lab_version: 1
-scenario: mobile-money
-mode: vulnerable
-vulnerabilities:
-  - id: GT-MM-001
-    rule_id: AUTHZ-BOLA-001
-    endpoint: GET /wallets/{wallet_id}
-    expected: vulnerable
-    severity_hint: high
-    fixture:
-      owner_identity: customer-b
-      attacker_identity: customer-a
-      object_ref: wallet-b
-    notes: Cross-user wallet read is intentionally permitted in vulnerable mode.
-```
+A representative structure is defined in `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`.
 
-The exact schema can evolve, but it must remain machine-readable and version-controlled.
+The scanner detector packages must not read/import these manifests during ordinary scanning.
 
-## 8. Vulnerable versus corrected state
+## 9. Vulnerable versus corrected state
 
 Preferred design:
 
-- same service and fixtures;
-- vulnerability behaviour toggled through a deterministic mode/profile or separate container image/tag;
-- corrected state removes the seeded weakness without changing unrelated semantics.
+- same service and synthetic fixtures;
+- vulnerability behaviour toggled through a deterministic mode/profile or controlled build variant;
+- corrected state removes the seeded weakness without changing unrelated workflow semantics.
 
-This enables direct A/B evaluation.
+This enables direct A/B evaluation and a defensible paired negative case.
 
-Avoid maintaining two unrelated applications that drift from each other.
+Avoid maintaining two unrelated applications that drift from one another.
 
-## 9. Fixture model
+## 10. Fixture model
 
-Fixtures should include stable logical names rather than relying on opaque runtime database IDs where possible.
+Use stable logical fixture names rather than opaque runtime IDs where possible. Reset tooling may expose deterministic logical-to-runtime mappings if UUIDs are used internally.
 
 Example logical references:
 
 ```text
-customer-a
-customer-b
-wallet-a
-wallet-b
-disposable-beneficiary-b
-officer-only-case-1
+citizen-a
+citizen-b
+citizen-profile-b
+patient-a
+patient-b
+lab-result-b
+applicant-a
+applicant-b
+permit-application-b
+supervisor
+admin
 ```
 
-The lab may internally use UUIDs, but reset tooling should expose deterministic fixture mapping to the evaluation harness.
-
-## 10. Reset invariant
+## 11. Reset invariant
 
 Before every evaluation run:
 
 1. stop/reset relevant lab state or invoke deterministic reset;
 2. re-seed canonical fixtures;
 3. verify health;
-4. verify expected lab mode/version;
-5. verify ground-truth manifest hash/version.
+4. verify expected lab ID/version/mode;
+5. verify fixture version;
+6. verify ground-truth manifest hash/version in the evaluation layer.
 
-A run without successful reset/verification is invalid research evidence.
+A run without successful reset/verification is invalid research evidence and must be retained with its invalidity reason rather than silently discarded.
 
-## 11. Evaluation dataset
+## 12. Evaluation dataset
 
-Every individual scanner evaluation run should emit a machine-readable record containing at minimum:
+Every scanner evaluation run should emit a machine-readable record containing at minimum:
 
 - run ID;
 - scanner commit/version;
+- rule catalogue version;
 - lab ID/version/mode;
+- fixture version;
 - ground-truth manifest hash;
+- matching-logic version;
 - specification hash;
 - scan profile;
 - start/end time and duration;
 - requests sent;
-- scanner findings;
-- matched ground-truth IDs;
-- TP/FP/FN counts;
+- rule executions and scanner findings;
+- matched ground-truth case IDs;
+- TP/FP/FN/TN where defensibly applicable;
 - errors/inconclusive cases;
-- environment/runtime metadata needed for reproducibility.
+- validity state/reason;
+- environment/runtime metadata needed for reproduction.
 
-## 12. Matching scanner findings to ground truth
+## 13. Primary evaluation unit and matching
 
-Evaluation must use an explicit matching key/rule rather than manual judgement after results are seen.
+The primary headline evaluation unit is the predeclared case tuple defined in `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`.
 
-Recommended primary matching dimensions:
+Matching must use deterministic dimensions such as:
 
-- lab/ground-truth vulnerability ID;
-- expected scanner rule ID;
-- endpoint/operation or fixture scope;
-- vulnerability mode.
+- lab ID;
+- case ID;
+- expected rule ID;
+- operation key;
+- fixture/property key;
+- lab mode.
 
-A finding should not become a TP simply because its text sounds similar to a seeded weakness.
+A finding must not become a TP merely because its free text resembles a seeded weakness.
 
-## 13. Core metrics
+Unexpected findings outside the predeclared headline case set remain visible and are analysed separately; they must not be discarded or retroactively turned into ground truth merely to improve metrics.
+
+## 14. Core metrics
 
 ### Precision
 
@@ -246,82 +233,85 @@ F1 = 2 * precision * recall / (precision + recall)
 
 ### False-positive rate
 
-The dissertation must choose and document one denominator consistently. A practical rule-level experimental definition is:
+Where a predeclared executed negative-case denominator gives defensible true negatives:
 
 ```text
 FPR = FP / (FP + TN)
 ```
 
-If true negatives are not meaningfully enumerated for a particular analysis, report false positives and precision instead of inventing an FPR. The final methodology must explicitly define the unit of analysis (rule-operation test case, ground-truth case, or another defensible unit).
+If TN is not meaningful for an analysis, report false positives and precision rather than manufacturing an FPR.
 
-### Scan duration
+### Scan duration and request count
 
-Wall-clock runtime for the bounded profile, recorded with request count.
+Record wall-clock duration together with transmitted request count and stopped/inconclusive states.
 
 ### Reproducibility/stability
 
-Repeat key runs and measure whether the same ground-truth cases receive the same scanner classification.
+Repeat key frozen evaluation profiles and report whether case-level outcomes remain consistent across runs. The exact repetition count and formula must be fixed before final data collection.
 
-Possible summary:
+### Cross-stack portability
+
+Report successful execution and relevant detection coverage across all three laboratory stacks without scanner logic changes tied to target implementation language.
+
+## 15. Result-state treatment
+
+The scanner preserves:
 
 ```text
-stability = identical expected-case outcomes / repeated expected-case outcomes
+NOT_APPLICABLE
+PASS_OBSERVED
+CONFIRMED
+SUSPECTED
+INFORMATIONAL
+INCONCLUSIVE
+ERROR
 ```
 
-The final formula/interpretation should be stated in the dissertation methodology.
+Before final data collection, P9 must freeze how each state contributes to headline and secondary metrics. `ERROR` and `INCONCLUSIVE` must never be silently converted into successful passes or removed from the dataset.
 
-### Cross-platform success rate
+## 16. Repetition plan
 
-Measure successful execution/detection coverage across all three lab stacks without scanner target-language modifications.
+The current engineering default is five repeated runs per lab/mode/final profile. This is primarily a stability/reproducibility check, not a claim of statistical sufficiency.
 
-## 14. Repetition plan
+The exact number is frozen before final collection. Every run is retained with validity metadata.
 
-At minimum, key final evaluation profiles should be repeated multiple times per lab/mode to detect flaky behaviour.
-
-The exact number of repeats should be fixed before final data collection. A practical starting point is 3–5 repeats per canonical configuration, subject to dissertation time constraints.
-
-Do not selectively discard failed runs. Invalid runs must have a documented invalidation reason such as failed reset or infrastructure failure.
-
-## 15. OWASP ZAP baseline
+## 17. OWASP ZAP baseline
 
 OWASP ZAP is the general-purpose baseline named in the proposal.
 
-### Baseline principles
+Baseline principles:
 
-- use a documented pinned ZAP version/container where practical;
-- use the same target lab mode;
-- import/use OpenAPI where ZAP supports it;
-- use a documented authentication setup when practical;
-- avoid claiming ZAP should detect vulnerabilities outside its applicable automated baseline capabilities;
-- preserve raw baseline output in research artefacts;
-- normalize findings into the evaluation schema without rewriting their meaning.
+- pin/document a ZAP version/container;
+- use the same reset laboratory state and scope;
+- import OpenAPI where supported;
+- configure authentication where practical and reproducible;
+- preserve raw baseline output in sanitised research artefacts as appropriate;
+- normalize findings without rewriting their meaning;
+- record an explicit applicability/coverage dimension.
 
-### Comparison dimensions
-
-For vulnerabilities meaningfully observable by both tools, compare:
-
-- detection coverage;
-- false positives;
-- scan duration;
-- evidence usefulness/reproducibility.
-
-For identity-differential authorisation cases that ZAP cannot reliably model under the chosen baseline, record the limitation explicitly rather than counting unsupported capability as a conventional false negative without explanation.
-
-## 16. Evaluation experiment structure
-
-Suggested experiment matrix:
+For each case classify ZAP comparability, for example:
 
 ```text
-3 labs
-x 2 modes (vulnerable, corrected)
-x N repeated runs
-x scanner profile
-+ corresponding applicable ZAP baseline runs
+EQUIVALENTLY_TESTABLE
+PARTIALLY_TESTABLE
+NOT_EQUIVALENTLY_TESTABLE
 ```
 
-This gives both positive and negative cases and directly tests false-positive behaviour on corrected variants.
+Do not count unsupported multi-identity semantic authorisation behaviour as an ordinary ZAP false negative merely because the proposed scanner implements a different testing model.
 
-## 17. Evaluation scripts
+## 18. Optional independent benchmark
+
+An independently developed deliberately vulnerable API benchmark may be used as a secondary validation target if schedule permits. It is optional. It must use a safe local/authorised deployment and must not displace the three required e-government labs.
+
+## 19. Optional ZCHPC laboratory deployment
+
+If formal permission/resources are granted, an isolated copy of the student's own laboratory environment may be deployed to an authorised ZCHPC test resource to examine portability in a local cloud context.
+
+This is optional and does not change the target scope: ZCHPC production services, management interfaces, unrelated tenants and production government applications are not evaluated.
+
+Failure to obtain ZCHPC access does not block completion.
+
+## 20. Evaluation scripts
 
 Planned repository paths:
 
@@ -330,7 +320,7 @@ evaluation/
   profiles/
   scripts/
   schemas/
-  results/          # ignored or sample-only; do not commit secrets
+  results/          # ignored or sample-only
   analysis/
 ```
 
@@ -344,48 +334,54 @@ make evaluate-zap
 make evaluate-summary
 ```
 
-Exact commands can use a `Makefile`, `justfile`, or Python task runner, but there should be one canonical task surface.
+The final evaluation must be runnable non-interactively from documented commands.
 
-## 18. Research artefact preservation
+## 21. Research artefact preservation
 
 Commit:
 
 - evaluation schemas;
 - scripts;
 - ground-truth manifests;
-- small synthetic sample outputs;
+- direct lab contract tests;
+- small sanitised synthetic sample outputs;
 - analysis code/notebooks if used;
-- final anonymised/redacted aggregate datasets suitable for dissertation reproduction.
+- final redacted aggregate datasets suitable for dissertation reproduction.
 
 Do not commit:
 
 - secrets;
-- live production target data;
+- real government/health/citizen data;
+- production target data;
 - bearer tokens/cookies;
-- uncontrolled raw dumps containing sensitive information.
+- uncontrolled raw dumps containing sensitive material.
 
-## 19. Failure/validity controls
+## 22. Threats to validity to control
 
-Threats to validity that engineering should actively reduce:
+Engineering must actively reduce:
 
-- scanner knows lab ground truth directly during normal detection — prohibited; ground truth is for evaluation harness, not rule decisions;
-- different seeded behaviour across stacks accidentally changes difficulty — document and keep comparable categories while allowing stack-specific details;
-- ZAP configuration unfairly weak/strong — pin and document settings;
-- corrected mode changes unrelated endpoints — avoid through toggled behaviour and tests;
-- data leakage between repeated runs — enforce reset;
-- flaky timing/resource rule — use bounded deterministic profiles and repeat runs;
-- manually relabelling ambiguous results after seeing scanner output — define matching/classification rules first.
+- scanner detector logic learning/reading lab ground truth;
+- mode drift beyond seeded cases;
+- inconsistent difficulty caused by accidental lab differences;
+- post-hoc matcher changes;
+- post-hoc metric/state-treatment changes;
+- selective removal of failed/poor runs;
+- unfair ZAP comparison;
+- data leakage between repetitions;
+- timing flakiness in resource-control tests;
+- manually relabelling ambiguous outcomes after seeing scanner results.
 
-## 20. Final evaluation acceptance gate
+## 23. Final evaluation acceptance gate
 
 Final research data collection does not begin until:
 
-1. all three labs have deterministic reset;
-2. all ground-truth manifests are reviewed and versioned;
-3. scanner profile is frozen/versioned;
-4. evaluation matching logic is tested;
-5. ZAP baseline configuration is pinned/documented;
-6. corrected modes pass lab functional tests;
-7. scanner verification suite passes;
-8. evidence redaction tests pass;
-9. repository commit used for evaluation is tagged or otherwise immutably recorded.
+1. all three labs reset deterministically;
+2. direct lab functional tests prove vulnerable and corrected behaviour;
+3. ground-truth manifests are reviewed, versioned and frozen;
+4. scanner profile and rule catalogue are frozen/versioned;
+5. evaluation case tuples and matching logic are tested and frozen;
+6. metric formulas and state-treatment rules are frozen;
+7. ZAP baseline version/configuration is pinned/documented;
+8. scanner verification suite passes;
+9. evidence redaction tests pass;
+10. the exact repository commit used for evaluation is tagged or otherwise immutably recorded.
