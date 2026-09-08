@@ -10,13 +10,13 @@ The canonical store is SQLite for local-first operation. SQLAlchemy migrations m
 
 ### Project
 
-Fields conceptually include:
+Conceptual fields:
 
 - `id`;
 - `name`;
 - `description/notes`;
 - `environment_class`;
-- `authorisation_reference` (metadata only);
+- `authorisation_reference` metadata only;
 - timestamps.
 
 ### Target
@@ -46,12 +46,12 @@ Fields conceptually include:
 - normalized metadata;
 - timestamps.
 
-The original spec may be stored locally where safe, but secrets embedded in source documents must be rejected/redacted according to ingestion policy.
+The original specification may be stored locally where safe, but embedded secrets must be rejected/redacted according to ingestion policy.
 
 ### InventoryOperation
 
 - `id`;
-- `project/specification_id`;
+- project/specification reference;
 - method;
 - path template;
 - operation ID/tag;
@@ -82,7 +82,7 @@ No token/password/API-key value is stored in this table.
 - write policy;
 - resource-test policy;
 - request/rate budgets;
-- other deterministic safety parameters.
+- deterministic safety parameters.
 
 ### Scan
 
@@ -124,7 +124,7 @@ One record per rule-operation/fixture execution where appropriate:
 - `rule_execution_id`;
 - type;
 - redacted structured content;
-- hash if useful for integrity/deduplication;
+- optional integrity/deduplication hash;
 - capture timestamp;
 - truncation indicator.
 
@@ -154,21 +154,24 @@ Evidence should be structured JSON first, not arbitrary text blobs only.
 
 - run ID;
 - scanner commit/version;
+- rule catalogue version;
 - lab ID/version/mode;
+- fixture version;
 - ground-truth hash;
+- matcher version;
 - scanner scan ID;
-- optional ZAP run reference;
+- optional ZAP run reference/applicability metadata;
 - metrics;
 - validity state/reason;
 - timestamps.
 
 ### GroundTruthCase
 
-Prefer ground truth as version-controlled YAML/JSON manifests in lab directories. The evaluation harness may ingest a snapshot into the database, but the authoritative source remains the version-controlled manifest.
+Ground truth is authored as version-controlled YAML/JSON manifests in lab directories. The evaluation harness may ingest a snapshot after scanner output exists, but detector packages must not read/import these manifests.
 
 ## 3. Secret storage model
 
-Supported initial secret sources should stay simple:
+Initial supported secret sources:
 
 - environment variables;
 - ignored local `.env` file for development/labs;
@@ -176,14 +179,14 @@ Supported initial secret sources should stay simple:
 
 Do not build a custom secrets vault.
 
-Database fields should store only a reference such as:
+Database fields store only references such as:
 
 ```text
 SECRET_SOURCE=env
-SECRET_REF=MOBILE_MONEY_USER_A_TOKEN
+SECRET_REF=LAB_CITIZEN_RECORDS_CITIZEN_A_TOKEN
 ```
 
-Never echo the resolved value into logs, evidence, exception messages or UI responses.
+Never echo resolved values into logs, evidence, exception messages or UI responses.
 
 ## 4. Redaction model
 
@@ -201,7 +204,7 @@ At minimum replace values for:
 
 ### Body-field redaction
 
-Case-insensitive configurable sensitive names should include patterns for:
+Case-insensitive configurable sensitive names should cover patterns for:
 
 - password/passwd;
 - token/access_token/refresh_token/id_token;
@@ -210,9 +213,9 @@ Case-insensitive configurable sensitive names should include patterns for:
 - session/session_id;
 - authorization.
 
-### Token-like value redaction
+### Runtime secret-value redaction
 
-Where feasible, the redactor should also detect values known to the runtime secret registry and replace occurrences even if they appear under an unexpected key.
+Where feasible, the redactor should also remove exact values known to the runtime secret registry even if they appear under an unexpected field name.
 
 ### Redaction marker
 
@@ -222,15 +225,13 @@ Use a consistent marker such as:
 [REDACTED]
 ```
 
-Do not include hashes of credentials as an alternative because stable hashes can still create unnecessary sensitive correlation material.
+Do not store hashes of credentials as substitutes.
 
 ## 5. Evidence minimisation
 
-Persist the minimum material needed to prove the condition.
+Persist the minimum material required to support the conclusion.
 
-Examples:
-
-### BOLA evidence
+### BOLA evidence example
 
 Prefer:
 
@@ -238,26 +239,26 @@ Prefer:
 {
   "request": {
     "method": "GET",
-    "path": "/wallets/<object-b>",
-    "identity": "customer-a"
+    "path": "/api/v1/citizens/<citizen-b>",
+    "identity": "citizen-a"
   },
   "comparison": {
-    "owner_baseline_identity": "customer-b",
+    "owner_baseline_identity": "citizen-b",
     "cross_user_status": 200,
-    "stable_fields_matching": ["wallet_id", "owner_fixture"]
+    "stable_fields_matching": ["citizen_id", "record_fixture"]
   },
   "response_excerpt": {
-    "wallet_id": "wallet-b",
-    "owner_fixture": "customer-b"
+    "citizen_id": "citizen-b",
+    "record_fixture": "citizen-profile-b"
   }
 }
 ```
 
-rather than the full wallet response.
+rather than the complete synthetic citizen response.
 
 ### Error-leak evidence
 
-Persist only the small redacted lines/fields proving a stack trace or database error, not the full server response if unnecessary.
+Persist only the small redacted lines/fields proving a stack trace, framework path or database error, not the complete response where unnecessary.
 
 ## 6. Evidence size controls
 
@@ -265,6 +266,7 @@ The HTTP executor/evidence builder must enforce:
 
 - maximum response body capture size;
 - maximum persisted excerpt size;
+- per-scan persisted-size bound or defensible derivation;
 - truncation flag;
 - binary response exclusion unless a rule specifically needs metadata only.
 
@@ -272,7 +274,7 @@ The scanner is not a traffic archive.
 
 ## 7. Finding fingerprinting
 
-A stable fingerprint can help repeated-run comparison.
+A stable fingerprint can support repeated-run comparison.
 
 Recommended input dimensions:
 
@@ -280,46 +282,42 @@ Recommended input dimensions:
 rule_id + method + normalized_path + relevant fixture/property identifier
 ```
 
-Do not include secrets, raw response values or timestamps.
-
-Fingerprints are for matching/deduplication and evaluation; they must not hide distinct affected operations.
+Do not include secrets, raw protected values or timestamps.
 
 ## 8. Severity model
 
-Initial qualitative scale:
+Initial scale:
 
-- `critical`;
-- `high`;
-- `medium`;
-- `low`;
-- `info`.
+```text
+critical | high | medium | low | info
+```
 
-Severity assignment should be rule-default + bounded context adjustments, not a complex CVSS implementation unless dissertation requirements later demand it.
+Severity assignment should be rule-default plus bounded context adjustments, not a complex CVSS implementation unless later academic requirements demand it.
 
 Examples:
 
-- proven cross-user access to sensitive financial/personal object: typically high;
+- proven cross-user access to a protected synthetic citizen/health/permit record: typically high;
 - low-privilege privileged mutation: high/critical depending on controlled scenario impact;
 - verbose framework stack trace: medium/low depending on exposed content;
-- documentation exposure: informational/low unless sensitive non-public operations/details are exposed.
+- documentation exposure: informational/low unless non-public operations/details are exposed.
 
-Document every automatic adjustment.
+Document automatic adjustments.
 
 ## 9. Confidence model
 
 Suggested ordinal values:
 
-- `high` — direct rule proof condition with stable semantic confirmation;
+- `high` — direct rule proof with stable semantic confirmation;
 - `medium` — strong differential evidence with one missing semantic confirmation;
 - `low` — heuristic/informational observation.
 
-`confirmed` findings should normally require high or explicitly justified medium confidence. Confidence must not be inferred purely from HTTP status.
+`confirmed` findings normally require high or explicitly justified medium confidence. Confidence must not be inferred purely from HTTP status.
 
 ## 10. Canonical JSON report
 
-JSON is the authoritative export format because evaluation and reproducibility depend on machine-readable output.
+JSON is the authoritative export format for evaluation and reproducibility.
 
-Top-level conceptual schema:
+Conceptual schema:
 
 ```json
 {
@@ -330,17 +328,18 @@ Top-level conceptual schema:
   "scan": {},
   "summary": {},
   "findings": [],
+  "rule_executions": [],
   "inconclusive": [],
   "statistics": {},
   "provenance": {}
 }
 ```
 
-A JSON Schema should be committed and used in tests.
+Commit and test a JSON Schema.
 
 ## 11. CSV outputs
 
-CSV is intended for analysis, not full evidence.
+CSV is intended for analysis, not full raw evidence.
 
 Recommended tables:
 
@@ -349,79 +348,57 @@ Recommended tables:
 - `evaluation_runs.csv`;
 - `evaluation_matches.csv`.
 
-Do not flatten secret-bearing raw traffic into CSV.
+Neutralise spreadsheet formula execution in target-controlled fields. Do not flatten secret-bearing raw traffic into CSV.
 
 ## 12. HTML report
 
-The human-readable report should contain:
+Required structure:
 
-### Cover/metadata
+1. project/scan metadata;
+2. scope and safety profile;
+3. executive summary;
+4. findings summary;
+5. detailed findings and redacted evidence;
+6. OWASP mapping;
+7. limitations/inconclusive/error states;
+8. request/scan statistics;
+9. reproducibility/provenance metadata.
 
-- project;
-- target label;
-- scan ID/time;
-- scanner version;
-- profile;
-- scope summary.
-
-### Executive summary
-
-- counts by finding state and severity;
-- concise statement of scope and limitations;
-- safety profile/request counts.
-
-### Findings
-
-For each finding:
-
-- title;
-- status/severity/confidence;
-- endpoint;
-- OWASP/CWE mapping;
-- expected vs observed behaviour;
-- minimal redacted evidence;
-- remediation;
-- reproduction notes.
-
-### Limitations and inconclusive results
-
-This section is mandatory. A report that hides tests that could not be concluded is academically weaker and operationally misleading.
-
-### Provenance
-
-- scanner commit;
-- rule catalogue version;
-- spec hash;
-- target/lab version if available;
-- scan profile;
-- timing/request stats.
+All target-controlled text is escaped. Reports never embed active target HTML/script/SVG/template content.
 
 ## 13. OWASP mapping presentation
 
-Reports must state that the scanner covers a **selected subset** of OWASP API Security Top 10 2023 categories. It must not render an unimplemented category as “secure”.
-
-Recommended mapping table fields:
-
-- OWASP category;
-- rules executed;
-- confirmed findings;
-- suspected/informational findings;
-- not tested/not in scope note.
+Reports must state that the scanner covers a **selected subset** of OWASP API Security Top 10 2023 categories. An unimplemented category is `not covered`, never `secure`.
 
 ## 14. Reproduction instructions
 
-For each confirmed finding, include safe reproduction guidance that references:
+For each confirmed finding, include safe reproduction guidance referencing:
 
 - controlled identity label;
 - method/path;
 - fixture/object label;
-- minimal expected request variation;
+- minimal request variation;
 - observed outcome;
 - safety note where writes are involved.
 
-Do not export live credentials in reproduction commands.
+Do not export live credentials.
 
-## 15. Auditability
+## 15. Evaluation reporting
+
+Evaluation outputs must include:
+
+- predeclared case ID;
+- matcher version;
+- expected rule/operation/fixture dimensions;
+- scanner result state;
+- TP/FP/FN/TN classification where defensible;
+- ZAP applicability state and normalized result where relevant;
+- validity state/reason;
+- all provenance fields required by `docs/04-LABS-AND-EVALUATION.md`.
+
+Unexpected findings outside headline case tuples remain visible rather than being discarded.
+
+## 16. Auditability
 
 A reviewer should be able to answer:
 
@@ -432,5 +409,7 @@ A reviewer should be able to answer:
 - was evidence redacted before storage?
 - how many requests did the rule use?
 - could the finding be reproduced against the same lab state?
+- which frozen ground-truth case did evaluation match it to, if any?
+- which scanner/lab/matcher versions produced the metric?
 
 If the data model cannot answer these questions, it is incomplete.
