@@ -26,26 +26,27 @@ All rules MUST:
 
 1. use the shared controlled HTTP executor;
 2. respect global and rule-specific request budgets;
-3. revalidate target scope on every request and redirect;
+3. revalidate target scope/destination on every request and redirect;
 4. minimise requests;
 5. stop once the defined proof condition is met;
 6. avoid destructive payloads;
 7. use disposable seeded objects for write checks;
 8. redact secrets before persistence;
 9. record enough evidence for reproduction;
-10. expose confidence separately from severity.
+10. expose confidence separately from severity;
+11. preserve uncertainty rather than forcing binary conclusions.
 
 ## 4. Authorisation rules
 
 ### AUTHZ-BOLA-001 — Cross-user object read
 
-**Purpose:** detect Broken Object Level Authorisation where one controlled user can read an object owned by another controlled user.
+**Purpose:** detect Broken Object Level Authorisation where one controlled user can read a protected object owned by another controlled user.
 
 **Prerequisites**
 
 - two controlled identities, A and B;
 - an operation containing or resolving an object identifier;
-- a known object belonging to A and a known object belonging to B, preferably from lab/fixture metadata.
+- a known object belonging to A and a known object belonging to B, supplied by controlled project/lab fixture metadata.
 
 **Safe procedure**
 
@@ -57,7 +58,7 @@ All rules MUST:
 
 **Confirmed condition**
 
-A receives B's protected object or materially equivalent protected data without an authorisation denial and the response can be tied to B's object.
+A receives B's protected object or materially equivalent protected data without required authorisation and the response can be tied to B's object.
 
 **Suspected condition**
 
@@ -67,7 +68,7 @@ A receives a successful/ambiguous response strongly resembling B's baseline, but
 
 - explicit 401/403 denial;
 - object-not-found behaviour intentionally masking authorisation;
-- public objects declared public in ground truth/test metadata.
+- objects explicitly configured as public.
 
 **Evidence**
 
@@ -89,15 +90,15 @@ A receives a successful/ambiguous response strongly resembling B's baseline, but
 - controlled disposable object owned by B;
 - controlled identity A;
 - operation marked safe for lab mutation;
-- reset/cleanup available.
+- deterministic reset/cleanup available.
 
 **Safe procedure**
 
 1. Record the disposable object's known baseline state.
 2. Attempt the smallest reversible mutation as A.
-3. Verify the resulting state using the legitimate owner or fixture interface.
+3. Verify resulting state using the legitimate owner or fixture interface.
 4. If mutation occurred, record proof and stop.
-5. Restore/reset the laboratory state.
+5. Restore/reset laboratory state.
 
 **Confirmed condition**
 
@@ -114,11 +115,11 @@ A changes or deletes B's controlled disposable object without required authority
 **Prerequisites**
 
 - low-privilege and privileged controlled identities;
-- an operation classified as privileged by specification, lab metadata or configured policy.
+- an operation classified as privileged by specification or reproducible project/lab metadata.
 
 **Safe procedure**
 
-1. Exercise the operation using the legitimate privileged identity to establish expected route/function behaviour.
+1. Exercise the operation using the legitimate privileged identity to establish expected function behaviour.
 2. Exercise the same operation using the low-privilege identity with a harmless request or disposable object.
 3. Compare status and observable outcome.
 
@@ -134,7 +135,7 @@ The endpoint accepts the low-privilege request but the scanner cannot verify the
 
 ### AUTHZ-BFLA-002 — Anonymous access to privileged function
 
-**Purpose:** identify privileged operations that are callable without authentication.
+**Purpose:** identify privileged operations callable without authentication.
 
 **Procedure:** repeat a safe privileged operation without authentication using a non-destructive/disposable request.
 
@@ -144,22 +145,22 @@ The endpoint accepts the low-privilege request but the scanner cannot verify the
 
 ### AUTHZ-BOPLA-001 — Unauthorized sensitive property read
 
-**Purpose:** detect excessive exposure of object properties that should not be visible to the requesting identity.
+**Purpose:** detect exposure of object properties that should not be visible to the requesting identity.
 
 **Prerequisites**
 
-- property sensitivity metadata from lab/ground truth or configured policy;
+- protected-property metadata from controlled lab/project policy;
 - controlled identities/roles.
 
 **Procedure**
 
 1. Request an object as the permitted role and record allowed property set.
 2. Request equivalent object as restricted role.
-3. Compare returned field sets and sensitive values.
+3. Compare returned field sets and protected values.
 
 **Confirmed condition**
 
-Restricted role receives a property explicitly marked inaccessible in test metadata/ground truth.
+Restricted role receives a property explicitly marked inaccessible in the controlled test policy.
 
 **Mapping:** OWASP API3:2023 Broken Object Property Level Authorization.
 
@@ -170,20 +171,20 @@ Restricted role receives a property explicitly marked inaccessible in test metad
 **Prerequisites**
 
 - disposable object;
-- a candidate protected property from schema/ground truth/configuration;
+- candidate protected property from schema/reproducible controlled metadata;
 - lab-safe write profile.
 
 **Safe procedure**
 
 1. Create/reset a disposable object.
 2. Submit a normal permitted update as baseline.
-3. Submit the same update including one candidate protected property using a safe synthetic value.
-4. Verify whether that protected property changed.
+3. Submit the same update including one protected candidate property using a safe synthetic value.
+4. Independently verify whether the protected property changed.
 5. Stop after first verified proof for that property and reset state.
 
 **Confirmed condition**
 
-A role can set a property that policy/ground truth declares non-writable for that role.
+A role can persist a property that policy declares non-writable for that role.
 
 **Mapping:** OWASP API3:2023.
 
@@ -191,9 +192,9 @@ A role can set a property that policy/ground truth declares non-writable for tha
 
 ### AUTHN-MISSING-001 — Protected operation accepts anonymous request
 
-**Purpose:** identify missing authentication on operations declared or inferred to require authentication.
+**Purpose:** identify missing authentication on operations declared/configured to require authentication.
 
-**Prerequisites:** protected-operation metadata from spec/ground truth/configuration.
+**Prerequisites:** protected-operation metadata from specification or reproducible controlled project metadata.
 
 **Procedure:** issue the minimal safe request without credentials and compare with authenticated baseline.
 
@@ -208,7 +209,7 @@ A role can set a property that policy/ground truth declares non-writable for tha
 **Safe procedure**
 
 - use a syntactically harmless invalid token generated locally;
-- do not attempt token forgery aimed at bypassing cryptographic verification;
+- do not attempt cryptographic token-forgery attacks;
 - make one bounded protected-resource request.
 
 **Confirmed condition:** target returns protected authenticated content equivalent to valid baseline.
@@ -217,7 +218,7 @@ A role can set a property that policy/ground truth declares non-writable for tha
 
 ### AUTHN-EXPIRED-001 — Expired controlled token remains valid
 
-**Prerequisites:** lab/authorised environment provides a controlled expired token or deterministic token expiry fixture.
+**Prerequisites:** lab/authorised environment provides a deterministic controlled expired token fixture.
 
 **Procedure:** compare protected request with valid and expired controlled token.
 
@@ -227,7 +228,7 @@ A role can set a property that policy/ground truth declares non-writable for tha
 
 ### AUTHN-SESSION-001 — Logout/revocation lifecycle observation
 
-**Prerequisites:** target exposes a deterministic logout/revocation flow and a controlled session.
+**Prerequisites:** target exposes deterministic logout/revocation flow and a controlled session.
 
 **Safe procedure**
 
@@ -236,21 +237,19 @@ A role can set a property that policy/ground truth declares non-writable for tha
 3. invoke configured logout/revocation action;
 4. retry one protected request with the same prior session/token.
 
-**Confirmed condition:** revoked/logged-out session retains protected access contrary to target's declared lifecycle.
+**Confirmed condition:** revoked/logged-out session retains protected access contrary to declared lifecycle.
 
 **Mapping:** OWASP API2:2023.
 
 ### AUTHN-INCONSISTENT-001 — Equivalent operations enforce inconsistent authentication
 
-**Purpose:** flag an inventory pair where one equivalent/sibling operation requires authentication and another exposes equivalent protected data anonymously.
+**Purpose:** flag sibling/equivalent operations where one requires authentication and another exposes equivalent protected behaviour anonymously.
 
-This rule may be `SUSPECTED` without explicit target metadata because business equivalence is difficult to infer safely.
+Without explicit reproducible target metadata establishing meaningful equivalence, this rule should remain `SUSPECTED` or `INCONCLUSIVE` rather than over-claiming.
 
 ## 6. Configuration and misconfiguration rules
 
 ### CONFIG-CORS-001 — Credentialed arbitrary-origin CORS
-
-**Purpose:** detect a high-risk CORS combination observable through preflight/response headers.
 
 **Procedure**
 
@@ -259,24 +258,22 @@ This rule may be `SUSPECTED` without explicit target metadata because business e
 
 **Confirmed condition**
 
-Target reflects/permits an arbitrary untrusted origin while allowing credentials on a protected API response in a configuration demonstrated by the test.
+Target permits an arbitrary untrusted origin while allowing credentials on a protected API response in a configuration demonstrated by the test.
 
-**Suspected/informational**
-
-Broad origins on public endpoints without credential exposure should not be automatically classified as confirmed high severity.
+Broad origins on intentionally public endpoints are not automatically confirmed high-severity vulnerabilities.
 
 ### CONFIG-HEADERS-001 — Security header observations
 
 Record presence/value observations for headers relevant to the HTTP/API surface.
 
-Do not blindly apply browser-page header requirements to pure API responses. Findings should distinguish applicable from informational controls.
+Do not blindly apply browser-page header requirements to pure API responses.
 
 Potential observations include:
 
 - HSTS on HTTPS services;
 - cache-control for sensitive responses;
 - content-type correctness and `X-Content-Type-Options` where applicable;
-- server/banner disclosure as informational unless evidence supports a stronger claim.
+- server/banner disclosure as informational unless evidence supports more.
 
 ### CONFIG-TLS-001 — TLS protocol/certificate observation
 
@@ -287,11 +284,9 @@ Safely record:
 - negotiated protocol/cipher information available through ordinary client negotiation;
 - obvious deprecated protocol support only if it can be tested without aggressive scanning.
 
-This dissertation rule is a bounded client-side configuration check, not a full TLS scanner.
+This is a bounded client-side configuration observation, not a comprehensive TLS scanner.
 
 ### CONFIG-ERROR-001 — Verbose error/stack-trace leakage
-
-**Procedure**
 
 Use malformed-but-bounded inputs derived from documented parameter types, not unrestricted fuzzing.
 
@@ -299,39 +294,23 @@ Use malformed-but-bounded inputs derived from documented parameter types, not un
 
 Error response exposes implementation-sensitive details such as stack traces, filesystem paths, raw database errors, framework internals or secrets.
 
-**Evidence:** persist only the minimum redacted excerpt required to demonstrate leakage.
+Persist only the minimum redacted excerpt required to demonstrate leakage.
 
 ### CONFIG-METHOD-001 — Risky/unexpected HTTP methods
-
-**Procedure**
 
 Compare documented allowed methods with safe `OPTIONS`/method behaviour and narrowly selected methods where testing is non-destructive.
 
 Never issue destructive methods merely to see whether they work against uncontrolled objects.
 
-**Finding examples**
-
-- privileged method unexpectedly enabled on a disposable lab resource;
-- method advertised that contradicts configured policy;
-- informational `Allow` method inventory.
-
 ### CONFIG-DOCS-001 — Exposed API documentation/interface
 
-Check configured common documentation paths only when they remain within the authorised target and request budget.
+Check configured common documentation paths only within authorised target scope and request budget.
 
-Possible observations:
-
-- Swagger/OpenAPI documents;
-- Swagger UI/ReDoc-like interfaces;
-- Postman or API explorer artefacts exposed by the target.
-
-Exposure is not automatically a vulnerability. Classification depends on environment, sensitivity and whether documentation reveals non-public operations or sensitive metadata.
+Exposure alone is not automatically a vulnerability. Classification depends on environment, sensitivity and whether documentation reveals non-public operations or sensitive metadata.
 
 ## 7. Inventory rules
 
 ### INVENTORY-DIFF-001 — Live operation missing from specification
-
-**Purpose:** identify an observed/declared live endpoint-operation that is not represented in the imported specification.
 
 Discovery MUST remain bounded. Sources may include:
 
@@ -339,7 +318,7 @@ Discovery MUST remain bounded. Sources may include:
 - links/paths returned by the controlled laboratory;
 - documentation surfaces;
 - Postman/OpenAPI comparison;
-- target-specific known route metadata during evaluation.
+- reproducible target-specific route metadata during evaluation.
 
 Do not implement unrestricted directory brute forcing.
 
@@ -353,18 +332,16 @@ This is primarily inventory quality information, not necessarily a security vuln
 
 Compare spec-declared authentication requirements with bounded anonymous observations.
 
-When the specification says an operation is protected but anonymous access returns protected content, this may feed `AUTHN-MISSING-001` as stronger evidence.
+When the specification says an operation is protected but anonymous access returns protected content, this may strengthen `AUTHN-MISSING-001` evidence.
 
 ## 8. Resource-control rules
 
 ### RESOURCE-RATE-001 — Bounded rate-limit behaviour
 
-**Purpose:** observe whether a configured sensitive operation exhibits an application-side rate-control response within a conservative test ceiling.
-
 **Prerequisites**
 
 - explicit enablement;
-- laboratory or written-authorisation scope;
+- controlled lab or written-authorisation scope;
 - configured maximum requests;
 - configured requests-per-second ceiling;
 - operation classified safe and idempotent where possible.
@@ -376,42 +353,36 @@ When the specification says an operation is protected but anonymous access retur
 3. stop immediately if throttling is observed;
 4. stop at the request ceiling whether or not throttling occurs.
 
-**Result semantics**
-
 Absence of observed throttling within a small safe window is generally `SUSPECTED` or `INFORMATIONAL`, not proof that no protection exists. The scanner must not increase load until a limit fails.
 
 **Mapping:** OWASP API4:2023 Unrestricted Resource Consumption where appropriate.
 
-## 9. Optional API4 bounded response-size observation
-
-### RESOURCE-SIZE-001 — Unbounded page/limit parameter observation
+### RESOURCE-SIZE-001 — Optional bounded page/limit observation
 
 Where a documented pagination/limit parameter exists, test only small controlled values up to a safe configured maximum.
 
-Flag evidence that the service ignores declared bounds or allows unusually large controlled page sizes only when this can be demonstrated safely.
-
 Do not request massive datasets.
 
-## 10. Candidate mapping to OWASP API Security Top 10 2023
+## 9. Candidate mapping to OWASP API Security Top 10 2023
 
-The dissertation does not need to claim comprehensive coverage of all ten categories. The locked catalogue focuses on safely testable black-box controls.
+The dissertation does not claim comprehensive coverage of all ten categories. The locked catalogue focuses on controls that can be tested safely through the authorised API interface.
 
-| OWASP category | Primary coverage in this project |
+| OWASP category | Primary coverage |
 |---|---|
 | API1 Broken Object Level Authorization | BOLA read/mutation rules |
 | API2 Broken Authentication | missing/invalid/expired/session rules |
 | API3 Broken Object Property Level Authorization | property exposure and mass assignment |
 | API4 Unrestricted Resource Consumption | bounded rate/size observations |
 | API5 Broken Function Level Authorization | role/function differential rules |
-| API6 Unrestricted Access to Sensitive Business Flows | only if a bounded scenario-specific rule is later defined; not generic automation by default |
-| API7 Server Side Request Forgery | not in the current locked proposal catalogue unless formally added |
+| API6 Unrestricted Access to Sensitive Business Flows | only if a bounded scenario-specific rule is formally defined |
+| API7 Server Side Request Forgery | not in current locked catalogue |
 | API8 Security Misconfiguration | CORS/TLS/headers/errors/method/docs rules |
 | API9 Improper Inventory Management | specification/live inventory differential rules |
-| API10 Unsafe Consumption of APIs | not generically testable from this scanner boundary and not required by the current proposal |
+| API10 Unsafe Consumption of APIs | not generically required in current scope |
 
-The report must never imply complete OWASP Top 10 coverage when the scanner implements only the defined subset.
+Reports must never imply complete OWASP Top 10 coverage.
 
-## 11. Rule implementation interface
+## 10. Rule implementation interface
 
 Each rule module should expose a contract conceptually equivalent to:
 
@@ -425,7 +396,7 @@ class ScanRule(Protocol):
     async def execute(context) -> RuleResult: ...
 ```
 
-`context` must provide controlled access to:
+`context` provides controlled access to:
 
 - inventory;
 - identity manager;
@@ -435,43 +406,51 @@ class ScanRule(Protocol):
 - evidence builder;
 - cancellation state.
 
-It must not expose raw database handles or an unrestricted HTTP client to rule implementations.
+It must not expose raw database handles or unrestricted HTTP clients to rule implementations.
 
-## 12. Rule-level automated testing requirements
+## 11. Rule-level automated testing requirements
 
 Every rule requires:
 
 1. unit tests for applicability;
-2. unit tests for proof-condition classification;
-3. negative tests demonstrating no finding for corrected behaviour;
+2. proof-condition classification tests;
+3. corrected/negative tests;
 4. evidence-redaction tests;
 5. request-budget tests;
-6. at least one integration test against the corresponding seeded lab vulnerability before the rule is considered complete.
+6. at least one integration test against a corresponding seeded lab vulnerability before the rule is complete;
+7. applicable semantic adversarial tests from `docs/11-RED-TEAM-ATTACK-MATRIX.md`.
 
-## 13. False-positive control strategy
+## 12. False-positive control strategy
 
 To minimise false positives:
 
 - prefer controlled baseline comparisons over status-code heuristics;
 - use two identities/roles when testing authorisation;
-- require explicit sensitive/protected field metadata for strong property-level assertions;
-- separate `confirmed` from `suspected`;
-- mark incomplete preconditions as `inconclusive` rather than vulnerable;
-- preserve lab ground truth independently from scanner output;
-- avoid interpreting documentation exposure, headers or absent throttling as automatically critical.
+- require explicit protected-field/operation metadata for strong assertions;
+- separate `CONFIRMED` from `SUSPECTED`;
+- mark incomplete preconditions `INCONCLUSIVE` rather than vulnerable;
+- preserve laboratory ground truth independently from scanner output;
+- avoid treating documentation exposure, header absence or absent throttling as automatically severe;
+- never confirm a write vulnerability from reflected input without independent state verification.
 
-## 14. Stop conditions
+## 13. Stop conditions
 
 The orchestrator must stop an individual rule/test when:
 
 - proof condition is reached;
 - request budget is exhausted;
-- target scope validation fails;
+- target scope/destination validation fails;
 - redirect leaves allowed scope;
 - target begins returning sustained service-unavailable/rate-limit responses beyond configured tolerance;
 - cancellation is requested;
-- a write test cannot guarantee disposable-state cleanup;
+- a write test cannot guarantee disposable-state cleanup/reset;
 - response size exceeds capture policy;
-- safety invariant is violated.
+- a safety invariant is violated.
 
 The scanner must prefer an incomplete result over unsafe continuation.
+
+## 14. Laboratory mapping
+
+The authoritative mapping from rule IDs to the Citizen Records, Public Health Records and Permit & Licensing seeded cases is `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`.
+
+Do not create new seeded cases merely to make current scanner output look better. Changes to headline evaluation cases require a reviewed methodology update before final collection.
