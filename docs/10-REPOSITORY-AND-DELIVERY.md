@@ -2,7 +2,7 @@
 
 ## 1. Objective
 
-GitHub is the durable execution contract between planning/review in ChatGPT and implementation on the AntiGravity VM. The repository must contain every decision that AntiGravity needs to implement the project without relying on undocumented conversational context.
+GitHub is the durable execution contract between academic/planning review and implementation on the AntiGravity VM. The repository must contain every decision needed to implement the project without relying on undocumented conversational context.
 
 ## 2. Target repository layout
 
@@ -19,6 +19,7 @@ Delicious-Dissertation/
 │   └── workflows/
 │       └── verify.yml
 ├── docs/
+│   ├── 00A-ACADEMIC-PROPOSAL-BASELINE.md
 │   ├── 00-PROJECT-CHARTER.md
 │   ├── 01-ARCHITECTURE.md
 │   ├── 02-TEST-CATALOGUE.md
@@ -31,7 +32,9 @@ Delicious-Dissertation/
 │   ├── 09-CONFIGURATION-DEFAULTS.md
 │   ├── 10-REPOSITORY-AND-DELIVERY.md
 │   ├── 11-RED-TEAM-ATTACK-MATRIX.md
-│   └── 12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md
+│   ├── 12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md
+│   ├── 13-LAB-EXPERIMENT-SPECIFICATION.md
+│   └── 14-ANTIGRAVITY-HANDOFF.md
 ├── src/
 │   └── delicious_scanner/
 │       ├── app/
@@ -58,9 +61,9 @@ Delicious-Dissertation/
 │   ├── red_team/
 │   └── acceptance/
 ├── labs/
-│   ├── mobile-money-fastapi/
-│   ├── revenue-express/
-│   └── citizen-services-spring/
+│   ├── citizen-records-fastapi/
+│   ├── public-health-express/
+│   └── permit-licensing-spring/
 ├── evaluation/
 │   ├── profiles/
 │   ├── schemas/
@@ -69,27 +72,11 @@ Delicious-Dissertation/
 └── migrations/
 ```
 
-P1 may refine package names, but must preserve these separation-of-concern boundaries unless a documented reason exists.
+P1 may refine package names but must preserve separation-of-concern boundaries unless a documented reason exists.
 
 ## 3. Authoritative documents
 
-When requirements conflict, use this precedence:
-
-1. approved academic proposal;
-2. `docs/00-PROJECT-CHARTER.md` — locked engineering/research scope;
-3. `docs/06-SAFETY-SECURITY-MODEL.md` — hard safety constraints;
-4. `docs/12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md` — mandatory controls produced by adversarial review;
-5. `docs/11-RED-TEAM-ATTACK-MATRIX.md` — adversarial acceptance catalogue;
-6. `docs/02-TEST-CATALOGUE.md` — scanner rule semantics;
-7. `docs/04-LABS-AND-EVALUATION.md` — research evaluation methodology;
-8. `docs/01-ARCHITECTURE.md` and `docs/05-DATA-AND-REPORTING.md` — system/data design;
-9. `docs/03-USER-JOURNEYS.md` — operator behaviour;
-10. `docs/09-CONFIGURATION-DEFAULTS.md` — initial operational defaults;
-11. `docs/07-IMPLEMENTATION-PLAN.md` — implementation order/phase gates;
-12. `docs/08-REQUIREMENTS-TRACEABILITY.md` — proposal mapping;
-13. `AGENTS.md` — agent execution procedure.
-
-An implementation shortcut must not override a higher-level source of truth.
+When requirements conflict, use the precedence defined in `AGENTS.md`. The academic proposal baseline, charter and safety/research-integrity contracts always outrank implementation convenience.
 
 ## 4. Branching model
 
@@ -99,9 +86,9 @@ Keep the workflow simple:
 - use one short-lived branch per coherent phase/slice;
 - open a PR back to `main`;
 - do not create competing branches/PRs for the same active slice;
-- fix review/CI/red-team findings on the existing branch where practical.
+- fix review/CI/adversarial findings on the existing branch where practical.
 
-Suggested branch names:
+Canonical implementation branch names:
 
 ```text
 phase-1/foundation
@@ -116,11 +103,13 @@ phase-9/evaluation
 phase-10/final-validation
 ```
 
-Planning/red-team branches may exist only long enough to strengthen the source of truth before implementation; they are not parallel product implementation branches.
+Planning branches may exist only long enough to strengthen the source of truth before implementation; they are not parallel implementation branches.
 
 ## 5. Commit model
 
 Commits should be understandable and scoped. Do not combine unrelated refactors with research-semantic or ground-truth changes.
+
+Ground-truth, matcher, metric or lab-mode changes require especially explicit commit/PR descriptions because they can affect research validity.
 
 ## 6. Pull request contract
 
@@ -131,13 +120,13 @@ Every implementation PR should state:
 - acceptance criteria;
 - files/components changed;
 - verification commands/results;
-- applicable red-team attack IDs and results;
+- applicable adversarial attack IDs and results;
 - safety implications;
 - research/evaluation implications;
 - known limitations/deferred lower-severity cases;
-- exact head under review when relevant.
+- exact head SHA under review.
 
-A PR is complete only when the phase-specific acceptance gate and applicable CRITICAL/HIGH red-team gates are evidenced.
+A PR is complete only when the phase-specific acceptance gate and applicable CRITICAL/HIGH adversarial gates are evidenced on the exact head.
 
 ## 7. CI model
 
@@ -149,21 +138,21 @@ lint
 type check
 unit tests
 safety tests
-red-team tests
+adversarial tests
 integration tests
 lab contract tests
 report/schema tests
 secret scan
 ```
 
-CI itself is part of the security boundary:
+CI is part of the security boundary:
 
-- third-party actions use full commit-SHA pins;
+- third-party Actions use full commit-SHA pins;
 - workflow permissions are explicitly least privilege;
 - normal PR verification does not expose privileged secrets to PR-controlled code;
-- avoid unsafe execution of untrusted code via privileged `pull_request_target` patterns.
+- avoid unsafe `pull_request_target` execution of untrusted PR code.
 
-Do not require full Docker-heavy cross-stack evaluation for every documentation-only change. Full scanner/lab evaluation belongs in dedicated acceptance/evaluation workflows once implemented.
+Do not require full Docker-heavy cross-stack evaluation for documentation-only changes. Full scanner/lab evaluation belongs in dedicated acceptance/evaluation workflows once implemented.
 
 ## 8. Stable local command surface
 
@@ -183,9 +172,7 @@ make labs-reset
 make evaluate
 ```
 
-`make verify` should include all cheap/normal gates applicable to the current phase, including safety/red-team tests once implemented. Dedicated heavier acceptance/evaluation commands may supplement it.
-
-The implementation may use `uv`, Ruff, mypy/pyright, pytest, npm, Maven/Gradle and Docker internally.
+`make verify` should include all cheap/normal gates applicable to the current phase, including safety/adversarial tests once implemented. Dedicated heavier acceptance/evaluation commands may supplement it.
 
 ## 9. Environment contract
 
@@ -194,6 +181,8 @@ The VM must not require secrets committed to Git.
 Commit harmless examples, service ports and secret reference names. Never commit real tokens, passwords, API keys, cookies/session material, production credentials, private keys, sensitive authorisation documents or real target dumps.
 
 Ambient proxy environment must not silently reroute target-facing scanner traffic. Explicit proxy support is not an initial requirement.
+
+Local/container execution is canonical. A ZCHPC deployment, if authorised later, is an optional deployment profile for the student's own labs and cannot become an undocumented completion dependency.
 
 ## 10. Generated output policy
 
@@ -212,50 +201,64 @@ coverage/
 __pycache__/
 ```
 
-Final research datasets committed to Git must first pass secret/personal-data checks.
+Final research datasets committed to Git must first pass secret/personal-data checks and contain synthetic/redacted information only.
 
 ## 11. Issue model
 
-After P0 merge:
+- maintain one issue per phase P1-P10;
+- each issue identifies dependencies, deliverables, acceptance checklist, verification and non-goals;
+- applicable adversarial attack IDs are part of the phase gate;
+- create smaller issues only when a real independent slice/dependency appears;
+- keep phase issues aligned with the current e-government scope and lab IDs.
 
-- create one parent implementation tracker where useful;
-- create one issue each for P1–P10;
-- include objective, dependencies, deliverables, acceptance checklist, verification and non-goals;
-- add applicable red-team attack IDs/gates to the phase issue;
-- create smaller issues only when a real independent slice/dependency appears.
-
-Do not pre-create hundreds of micro-issues.
+Do not pre-create hundreds of speculative tasks.
 
 ## 12. Definition of ready
 
-A phase is ready when preceding dependencies are merged/passing, relevant design docs are clear, acceptance tests can be described before coding, applicable adversarial tests are identified, and no unresolved scope/safety conflict exists.
+A phase is ready when:
+
+- predecessor dependencies are merged/passing;
+- relevant design documents are clear;
+- the branch starts from the exact integrated predecessor commit;
+- acceptance tests can be described before coding;
+- applicable adversarial tests are identified;
+- no unresolved academic-scope, safety or research-integrity conflict exists.
 
 ## 13. Definition of done
 
-A phase is done when the stated implementation is complete, required automated tests pass, safety requirements hold, applicable CRITICAL/HIGH red-team cases pass, documentation is updated, CI passes at the exact PR head, acceptance proof is reproducible, and no placeholder is represented as working functionality.
+A phase is done when the stated implementation is complete, required automated tests pass, safety requirements hold, applicable CRITICAL/HIGH adversarial cases pass, documentation is updated, CI passes at the exact PR head, acceptance proof is reproducible, and no placeholder is represented as working functionality.
 
 ## 14. AntiGravity handoff model
 
+The detailed no-context VM procedure is `docs/14-ANTIGRAVITY-HANDOFF.md`.
+
+Conceptually:
+
 ```text
-clone/pull repository
-  -> read AGENTS.md
-  -> identify active phase issue/branch
-  -> read relevant authoritative docs
-  -> read relevant red-team attack/hardening requirements
+clone/fetch repository
+  -> read academic baseline + AGENTS.md
+  -> identify active phase issue/branch and exact handoff SHA
+  -> read relevant docs + adversarial requirements
   -> inspect current implementation/tests
-  -> implement the smallest complete slice
+  -> implement smallest complete phase slice
   -> run canonical verification
   -> run phase-specific adversarial + runtime/lab proof
   -> commit/push exact tested state
-  -> report what changed, proof, blocker and next task
+  -> open/update phase PR
+  -> integrate only when exact head is green
+  -> begin next phase from integrated main
 ```
 
-ChatGPT is the planning/review control surface. GitHub is the durable source of truth. AntiGravity is the execution environment.
+GitHub is the durable source of truth. If a decision matters to future execution, record it in Git rather than relying on chat memory.
 
-If a decision matters to future execution, record it in Git rather than relying on chat memory.
+## 15. Scope-change management
 
-## 15. Red-team change management
+Do not silently reintroduce older proposal scope from Git history.
 
-The attack matrix is expected to evolve when implementation reveals a genuinely new attack surface. Add new adversarial cases when a new feature creates a new trust boundary.
+A change to research questions, current e-government-only evaluation, lab scenarios, ZCHPC boundary, fintech future-work status, metric definitions or CRITICAL/HIGH expected-safe behaviour requires an explicit reviewed change to the relevant authoritative documents and phase issues before code follows it.
 
-Do not delete or weaken an existing expected-safe behaviour simply because it is difficult to implement. A change to a CRITICAL/HIGH expected-safe behaviour requires explicit reviewed justification and an equivalent or stronger control.
+## 16. Adversarial change management
+
+The attack matrix may evolve when implementation reveals a genuinely new trust boundary. Add new adversarial cases when a feature creates a new attack surface.
+
+Do not delete or weaken an existing expected-safe behaviour merely because it is difficult to implement. A change to a CRITICAL/HIGH expected-safe behaviour requires explicit reviewed justification and an equivalent or stronger control.
