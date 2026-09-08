@@ -9,34 +9,36 @@ This document defines the non-negotiable safety controls for the dissertation sc
 A scan may execute only when all of the following are true:
 
 1. the target is explicitly allow-listed;
-2. the effective scheme, host, port and base path match the registered scope;
-3. redirect behaviour cannot escape authorised scope;
-4. a scan profile with explicit request ceilings is selected;
-5. required controlled identities are configured for selected rules;
-6. secrets are available through approved runtime secret sources;
-7. the target passes reachability and safety preflight;
-8. the selected rule plan fits within global and rule-specific budgets.
+2. the effective scheme, host, port and base path match registered scope;
+3. the actual connection destination remains within approved address policy;
+4. redirect behaviour cannot escape authorised scope;
+5. a scan profile with explicit request ceilings is selected;
+6. required controlled identities are configured for selected rules;
+7. secrets are available through approved runtime secret sources;
+8. the target passes reachability and safety preflight;
+9. the selected rule plan fits within global, rule and resource budgets.
 
-Failure of any invariant must produce a blocking preflight result, not a warning-only state.
+Failure of any hard invariant produces a blocking preflight result, not a warning-only state.
 
 ## 3. Scope model
 
-The canonical scope key is:
+Canonical scope dimensions:
 
 ```text
-scheme + host + port + base-path prefix
+scheme + host + port + base-path policy + approved destination-address policy
 ```
 
 Rules:
 
 - wildcard Internet-scale targets are forbidden;
-- DNS names are revalidated at request time where practical;
+- DNS names and actual connection destinations are validated according to the locked network policy;
 - redirects are evaluated as new target candidates before following;
 - cross-host redirects are denied by default;
-- scheme downgrade from HTTPS to HTTP is denied by default;
-- userinfo embedded in URLs is rejected;
-- non-HTTP(S) schemes are rejected;
-- every HTTP request must pass through the shared executor and scope validator.
+- HTTPS-to-HTTP downgrade is denied by default;
+- URL userinfo is rejected;
+- non-HTTP(S) target schemes are rejected;
+- every target request passes through the shared executor and scope validator;
+- imported OpenAPI/Postman server metadata never expands operator-approved scope.
 
 No rule module may bypass these checks.
 
@@ -48,15 +50,17 @@ Default profile. Permits only requests that do not intentionally alter applicati
 
 ### Controlled Lab Full
 
-Permitted only for project-owned disposable laboratory targets. Allows narrowly defined mutation checks against seeded disposable fixtures and bounded resource-control observations.
+Permitted only for project-owned disposable laboratory targets or another explicitly authorised disposable test environment. Allows narrowly defined mutation checks against seeded disposable fixtures and bounded resource-control observations.
 
 ### Custom
 
-A custom profile may only reduce or explicitly enumerate capabilities. It must never silently enable unrestricted fuzzing, arbitrary scripting or unbounded request rates.
+A custom profile may reduce or explicitly enumerate capabilities but may never disable hard scope, redaction or request-budget controls.
+
+No profile may silently enable unrestricted fuzzing, arbitrary scripting or unbounded traffic.
 
 ## 5. Request budgets
 
-Every scan must define:
+Every scan defines:
 
 - maximum requests per second;
 - maximum total requests;
@@ -65,34 +69,36 @@ Every scan must define:
 - maximum redirect count;
 - maximum captured response size;
 - resource-control sub-budget;
-- optional per-rule request budget.
+- optional lower per-rule request budget.
 
-The executor must stop further requests once a hard budget is reached. Budget exhaustion is recorded as `STOPPED` or `INCONCLUSIVE`, never as a pass.
+Budget reservation/enforcement is atomic before scheduling/transmission. Retries and redirect hops consume the relevant budget.
+
+Budget exhaustion is recorded as `STOPPED` or `INCONCLUSIVE` according to context, never as a pass.
 
 ## 6. Mutation policy
 
 Write tests are allowed only when:
 
-- the target is classified as a controlled lab or specifically authorised disposable test environment;
-- the operation is explicitly marked mutation-safe;
-- the test uses a known disposable fixture;
-- the mutation is minimal and reversible;
+- target is a controlled lab or specifically authorised disposable test environment;
+- operation is explicitly marked mutation-safe;
+- test uses a known disposable synthetic fixture;
+- mutation is minimal and reversible;
 - reset/cleanup is available;
-- the rule stops after first sufficient proof.
+- rule stops after first sufficient proof.
 
-Delete operations should be avoided unless required by a seeded laboratory case. Prefer reversible field changes or disposable objects.
+Prefer reversible field changes or disposable objects. If cleanup/reset fails, stop further mutation tests against the affected fixture/environment until canonical state is restored.
 
 ## 7. Proof-of-condition rule
 
-The scanner exists to demonstrate whether a defined weakness is present, not to maximise impact.
+The scanner demonstrates whether a defined weakness is present; it does not maximise impact.
 
-Once the rule-specific proof condition is observed, the rule must stop. It must not:
+Once rule-specific proof is observed, stop. Do not:
 
-- enumerate additional victims;
+- enumerate additional affected users/records;
 - extract unnecessary records;
 - persist unauthorised access;
-- escalate privileges beyond the seeded proof case;
-- chain vulnerabilities for broader compromise;
+- escalate privileges beyond the controlled proof case;
+- chain weaknesses for broader compromise;
 - create service disruption.
 
 ## 8. Prohibited capabilities
@@ -102,25 +108,23 @@ The implementation must not add:
 - credential stuffing or password spraying;
 - brute-force authentication testing;
 - unrestricted or destructive fuzzing;
-- high-volume denial-of-service or stress testing;
-- exploit payload libraries intended for compromise;
+- high-volume denial-of-service, stress or saturation testing;
+- exploit libraries intended for compromise;
 - malware, persistence or post-exploitation behaviour;
 - arbitrary user-supplied attack scripts;
-- scanning of targets outside explicit scope.
+- scanning outside explicit scope.
 
-If a future feature request conflicts with these constraints, it requires an explicit project-scope decision before implementation.
+A future feature request conflicting with these constraints requires an explicit reviewed academic/project-scope decision before implementation.
 
 ## 9. Secrets
 
-Approved initial secret sources:
+Approved initial sources:
 
 - environment variables;
 - ignored local `.env` files for laboratories/development;
-- local secret files with restrictive permissions.
+- bounded local secret files with restrictive permissions.
 
-Secrets must not be committed to Git.
-
-Secrets must never be persisted in:
+Secrets must never be committed to Git or persisted in:
 
 - database evidence;
 - reports;
@@ -130,7 +134,7 @@ Secrets must never be persisted in:
 - screenshots;
 - evaluation datasets.
 
-The runtime secret registry should provide known values to the redaction layer so accidental body/header echoes can be removed before persistence.
+The runtime secret registry should provide exact known secret values to the redaction layer before persistence/export.
 
 ## 10. Evidence redaction boundary
 
@@ -142,15 +146,15 @@ Required redactions include:
 - cookies and Set-Cookie values;
 - API-key headers;
 - password/token/secret/session fields;
-- known runtime secret values wherever observed.
+- exact known runtime secret values wherever observed.
 
-Tests must verify that redaction occurs before database writes and report generation.
+Tests must prove redaction occurs before database writes and report generation.
 
 ## 11. Logging
 
 Logs are operational telemetry, not packet capture.
 
-Allowed logging examples:
+Allowed examples:
 
 - scan ID;
 - rule ID;
@@ -159,19 +163,42 @@ Allowed logging examples:
 - duration;
 - request counters;
 - state transitions;
-- redacted exception summaries.
+- sanitised/redacted exception summaries.
 
-Do not log request bodies or full response bodies by default.
+Do not log request/response bodies by default. Target-controlled terminal/control text must be sanitised before operator-facing display.
 
 ## 12. Laboratory isolation
 
-The three dissertation labs should run locally through Docker Compose on predictable loopback or dedicated local bridge endpoints. They must use synthetic data only.
+The canonical dissertation labs are:
 
-Evaluation tooling must verify the expected lab identity/version before executing mutation-enabled profiles.
+- `citizen-records-fastapi`;
+- `public-health-express`;
+- `permit-licensing-spring`.
 
-## 13. Preflight decision model
+They run locally through Docker Compose on loopback-published ports or a controlled local bridge and use synthetic data only.
 
-Preflight produces structured results:
+Evaluation tooling verifies expected lab ID/version/mode/fixture version before mutation-enabled execution.
+
+Canonical vulnerable labs:
+
+- publish only to loopback;
+- do not run privileged;
+- do not use host networking;
+- do not mount the Docker socket;
+- avoid unnecessary host mounts;
+- have no production service dependency.
+
+## 13. ZCHPC boundary
+
+ZCHPC is optional hosting context for an isolated copy of the student's own laboratory only when formal permission/resources exist.
+
+The dissertation does not scan ZCHPC production applications, management plane, hypervisor, network fabric, unrelated tenants or production government systems.
+
+The full project must remain completable on student-controlled VM/container infrastructure without ZCHPC access.
+
+## 14. Preflight decision model
+
+Preflight produces:
 
 ```text
 PASS      requirement satisfied
@@ -182,39 +209,54 @@ BLOCK     scan must not start
 Examples of `BLOCK`:
 
 - target not allow-listed;
+- destination/scope unsafe;
 - redirect scope unsafe;
 - missing request ceilings;
-- mutation profile selected for non-lab target;
+- mutation profile selected for non-disposable target;
 - required identity secret unavailable;
 - selected rules exceed configured hard policy.
 
-Warnings must never downgrade hard safety failures.
+Warnings never downgrade hard failures.
 
-## 14. Emergency stop
+## 15. Emergency stop
 
-The scan engine must support cooperative cancellation. A stop request prevents new requests from being scheduled and records the reason.
+The scan engine supports cooperative cancellation. A stop prevents new requests from being scheduled and records the reason.
 
 Automatic safety-stop conditions include:
 
-- request budget exceeded;
-- repeated target instability according to conservative threshold;
-- redirect scope violation;
-- unexpected target identity/version change in lab evaluation;
-- unrecoverable redaction/persistence safety failure.
+- request budget exhausted;
+- repeated target instability beyond conservative threshold;
+- redirect/destination scope violation;
+- unexpected target identity/version/mode change in lab evaluation;
+- unrecoverable redaction/persistence safety failure;
+- cleanup/reset failure that makes further controlled writes unsafe.
 
-## 15. Security testing of the scanner itself
+## 16. Security testing of the scanner itself
 
-The scanner must have automated tests for:
+Automated tests must cover:
 
 - scope validation and redirect escape prevention;
+- destination/DNS edge cases;
 - URL parsing edge cases;
-- rate and request-budget enforcement;
+- atomic rate/request-budget enforcement;
+- identity-session isolation;
 - secret redaction;
 - evidence minimisation;
-- prevention of direct HTTP clients in rule modules where feasible through architecture/lint tests;
-- safe handling of malformed OpenAPI/Postman input;
+- prevention of direct target HTTP clients in rule modules where feasible;
+- safe malformed OpenAPI/Postman handling;
+- report/dashboard injection controls;
 - database/report output containing no known fixture secrets.
 
-## 16. Ethical operating statement
+The full adversarial acceptance catalogue is `docs/11-RED-TEAM-ATTACK-MATRIX.md` and the locked design responses are in `docs/12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md`.
 
-No real Zimbabwean fintech, government or other third-party system is an evaluation dependency. The dissertation can be completed entirely against controlled laboratories. Any future real-system test requires written authorisation and must remain within the same bounded safety model.
+## 17. Research-integrity boundary
+
+Ground-truth manifests are evaluation inputs only. Ordinary scanner detector packages must not read/import them.
+
+Ground truth, matching logic, metric formulas and state-treatment rules are frozen before final data collection. Failed or inconvenient runs are retained with explicit validity reasons.
+
+## 18. Ethical operating statement
+
+No real Zimbabwean government, ZCHPC production or other third-party system is an evaluation dependency. The dissertation can be completed entirely against controlled synthetic e-government laboratories.
+
+Any future real-system test requires written authorisation, an agreed scope, the same bounded safety model and any required university approval before execution.
