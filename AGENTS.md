@@ -4,35 +4,43 @@
 
 This file is the execution contract for AI coding agents working in this repository, including AntiGravity on the implementation VM.
 
-Read this file and the authoritative documents under `docs/` before modifying code.
+Read this file and the authoritative documents under `docs/` before modifying code. Do not rely on prior chat history; decisions required for implementation must exist in Git.
 
 ## 2. Source-of-truth precedence
 
 When instructions conflict, use this order:
 
-1. the approved academic proposal and its explicit research/safety boundaries;
+1. `docs/00A-ACADEMIC-PROPOSAL-BASELINE.md` and any later explicitly supervisor-approved academic scope amendment recorded in Git;
 2. `docs/00-PROJECT-CHARTER.md`;
 3. `docs/06-SAFETY-SECURITY-MODEL.md` for hard safety constraints;
 4. `docs/12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md` for mandatory controls introduced by adversarial review;
 5. `docs/11-RED-TEAM-ATTACK-MATRIX.md` for adversarial acceptance cases;
-6. `docs/02-TEST-CATALOGUE.md` for scanner rule semantics;
-7. `docs/04-LABS-AND-EVALUATION.md` for experimental methodology;
-8. `docs/01-ARCHITECTURE.md`;
-9. `docs/05-DATA-AND-REPORTING.md`;
-10. `docs/03-USER-JOURNEYS.md`;
-11. `docs/08-REQUIREMENTS-TRACEABILITY.md`;
-12. `docs/09-CONFIGURATION-DEFAULTS.md` for initial operational defaults;
-13. `docs/07-IMPLEMENTATION-PLAN.md`;
-14. `docs/10-REPOSITORY-AND-DELIVERY.md`;
-15. implementation code/tests.
+6. `docs/13-LAB-EXPERIMENT-SPECIFICATION.md` for laboratory roles, endpoint contracts, seeded cases and evaluation units;
+7. `docs/02-TEST-CATALOGUE.md` for scanner rule semantics;
+8. `docs/04-LABS-AND-EVALUATION.md` for experimental methodology;
+9. `docs/01-ARCHITECTURE.md`;
+10. `docs/05-DATA-AND-REPORTING.md`;
+11. `docs/03-USER-JOURNEYS.md`;
+12. `docs/08-REQUIREMENTS-TRACEABILITY.md`;
+13. `docs/09-CONFIGURATION-DEFAULTS.md` for initial operational defaults;
+14. `docs/07-IMPLEMENTATION-PLAN.md`;
+15. `docs/10-REPOSITORY-AND-DELIVERY.md`;
+16. `docs/14-ANTIGRAVITY-HANDOFF.md` for execution procedure;
+17. implementation code/tests.
 
-If code and documentation disagree, do not silently redefine the requirement in code. Fix the implementation or explicitly update the design in the same reviewed change when the proposal permits it.
+If code and documentation disagree, do not silently redefine the requirement in code. Fix the implementation or explicitly update the design in the same reviewed change when the academic baseline permits it.
 
 ## 3. Core mission
 
-Build an autonomous, cross-platform, black-box REST API security scanner that safely tests the bounded catalogue defined in this repository and produces reproducible, redacted, OWASP-aligned evidence for synthetic Zimbabwean fintech and e-government laboratory scenarios.
+Build an automated, source-language-independent REST API security scanner that safely tests the bounded catalogue defined in this repository and produces reproducible, redacted, OWASP-aligned evidence for synthetic Zimbabwean e-government laboratory scenarios.
+
+Current evaluation scope is e-government only. Fintech and digital-payment APIs are future work and must not be introduced into the current laboratory/evaluation plan without an explicit academic scope amendment.
 
 Do not turn this into a general exploitation framework or an enterprise SaaS platform.
+
+### Terminology discipline
+
+Use the terminology in the current academic proposal: **automated API security testing**, **API-interface behaviour**, **specification-assisted testing**, **controlled test identities**, and **laboratory-based evaluation**. Do not reintroduce superseded methodology labels from earlier drafts into code, documentation, UI text, reports or dissertation artefacts.
 
 ## 4. Mandatory safety invariants
 
@@ -48,11 +56,12 @@ These must never be bypassed for convenience:
 8. Stop at proof-of-condition; do not escalate into extraction or disruption.
 9. Credentials/tokens/cookies/API keys are redacted before persistence/export.
 10. Never log resolved secret values.
-11. Do not implement credential stuffing, password spraying, destructive/unrestricted fuzzing or DoS testing.
-12. Never point automated evaluation at real Zimbabwean fintech/government systems.
+11. Do not implement credential stuffing, password spraying, destructive/unrestricted fuzzing or denial-of-service testing.
+12. Never point automated dissertation evaluation at real Zimbabwean government or ZCHPC production systems.
 13. Imported specifications cannot expand authorised network scope.
 14. Ambient proxy environment must not reroute scanner target traffic by default.
 15. Vulnerable laboratories bind to loopback by default and must not be exposed as canonical public services.
+16. ZCHPC may only host an isolated student-controlled laboratory when explicit permission/resources exist; its management plane, unrelated tenants and production applications remain out of scope.
 
 If a requested implementation would break one of these, stop that change and preserve the invariant.
 
@@ -64,26 +73,28 @@ At the start of work:
 
 1. inspect repository status and current branch;
 2. pull/fetch the intended branch safely;
-3. read the current phase issue/requirements;
-4. read the relevant phase entries in `docs/11-RED-TEAM-ATTACK-MATRIX.md` and `docs/12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md`;
-5. inspect existing implementation/tests before changing anything;
-6. run the canonical verification command if the repository is already bootstrapped.
+3. verify the active phase branch matches the handoff commit recorded in its issue;
+4. read the current phase issue/requirements;
+5. read the relevant phase entries in `docs/11-RED-TEAM-ATTACK-MATRIX.md` and `docs/12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md`;
+6. read `docs/13-LAB-EXPERIMENT-SPECIFICATION.md` before any lab/evaluation work;
+7. inspect existing implementation/tests before changing anything;
+8. run the canonical verification command if the repository is already bootstrapped.
 
 Do not create a parallel architecture or duplicate subsystem when one already exists.
 
-## 6. Red-team completion rule
+## 6. Adversarial completion rule
 
 A phase is not complete merely because its happy-path acceptance tests pass.
 
 For the current phase:
 
-- every applicable **CRITICAL** and **HIGH** red-team case must have an automated test where technically practical;
+- every applicable **CRITICAL** and **HIGH** adversarial case must have an automated test where technically practical;
 - a protection must be shown to be meaningful through a focused negative/adversarial fixture, not only by asserting implementation structure;
 - applicable tests must run in the canonical verification/phase acceptance path;
-- unresolved CRITICAL/HIGH red-team failures block merge;
+- unresolved CRITICAL/HIGH failures block merge;
 - MEDIUM/LOW cases may be deferred only with an explicit issue/rationale and only if no higher-level safety/research requirement is weakened.
 
-Do not “pass” an attack case by weakening its expected safe behaviour.
+Do not make an attack case pass by weakening its expected safe behaviour.
 
 ## 7. Implementation discipline
 
@@ -142,7 +153,7 @@ At minimum:
 
 ## 11. Rule implementation contract
 
-Before implementing a scanner rule, read its entry in `docs/02-TEST-CATALOGUE.md` and relevant red-team rule cases.
+Before implementing a scanner rule, read its entry in `docs/02-TEST-CATALOGUE.md` and relevant adversarial rule cases.
 
 Every rule implementation must include:
 
@@ -181,6 +192,14 @@ Never convert `ERROR` or `INCONCLUSIVE` into a pass. Severity and confidence are
 ## 13. Laboratory discipline
 
 Ground truth remains independent of scanner detection logic. The scanner must not import ground-truth manifests during ordinary detection.
+
+The canonical laboratories are:
+
+- `citizen-records-fastapi`;
+- `public-health-express`;
+- `permit-licensing-spring`.
+
+Their exact roles, endpoint contracts, seeded cases and corrected behaviour are defined in `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`.
 
 For each lab change:
 
@@ -231,7 +250,7 @@ Remote binding is explicit non-default behaviour and must not silently become th
 
 Once P1 establishes the task surface, `make verify` (or the repository-documented canonical equivalent) is the required local and CI gate.
 
-It should cover formatting, lint, type/static checks, unit tests, safety tests, applicable red-team tests and appropriate integration tests. Lab/rule changes must also run relevant seeded-lab integration proof when not already covered.
+It should cover formatting, lint, type/static checks, unit tests, safety tests, applicable adversarial tests and appropriate integration tests. Lab/rule changes must also run relevant seeded-lab integration proof when not already covered.
 
 ## 17. Git/PR discipline
 
@@ -241,14 +260,14 @@ It should cover formatting, lint, type/static checks, unit tests, safety tests, 
 - Do not rewrite unrelated code merely for style.
 - Do not commit generated secrets/results.
 - Before merge, verify the exact branch head and fresh checks for that head.
-- Resolve real CI/review/red-team failures on the same PR where practical.
+- Resolve real CI/review/adversarial failures on the same PR where practical.
 - Do not treat stale successful runs from an earlier head as proof for a changed head.
 
 ## 18. Documentation rule
 
 Update documentation when behaviour changes public CLI/UI workflows, rule semantics, architecture boundaries, evidence/report schemas, lab ground truth, evaluation methodology, security controls or setup/verification commands.
 
-Do not change research questions, core scope, red-team expected safe behaviour or prohibited capabilities through a casual implementation edit.
+Do not change research questions, current e-government scope, laboratory scenarios, expected safe behaviour or prohibited capabilities through a casual implementation edit.
 
 ## 19. Anti-overengineering check
 
@@ -262,18 +281,18 @@ Report:
 
 - what changed;
 - files/components changed;
-- acceptance and red-team tests and results;
+- acceptance and adversarial tests and results;
 - branch and exact commit SHA;
 - relevant PR;
 - unresolved blockers/deferred lower-severity attack cases;
 - exact next phase/task.
 
-Never claim completion while required tests are failing or integration/red-team evidence is missing.
+Never claim completion while required tests are failing or integration/adversarial evidence is missing.
 
 ## 21. Current execution boundary
 
-Phase 0 is merged. A pre-implementation red-team hardening review has been added before P1 implementation.
+Planning, the adversarial hardening review and the e-government scope resynchronisation are complete before P1 implementation.
 
-After that hardening review is merged and the canonical P1 branch is fast-forwarded to the resulting `main`, begin **P1 — Repository/runtime foundation** on the existing P1 branch/issue.
+Begin **P1 — Repository/runtime foundation** only on the existing `phase-1/foundation` branch after verifying that it matches the exact handoff commit recorded in issue #2.
 
-Do not start P5 authorisation-rule implementation before P4 controlled HTTP execution, scope enforcement, identity/session foundations and their applicable red-team gates exist and pass.
+Do not start laboratory implementation before P1 is complete and merged. Do not start P5 authorisation-rule implementation before P4 controlled HTTP execution, scope enforcement, identity/session foundations and their applicable adversarial gates exist and pass.
