@@ -2,25 +2,23 @@
 
 ## 1. Purpose
 
-This document removes implementation ambiguity for Phase 1 onward. Values here are safe initial defaults for the dissertation laboratories and local scanner. They remain configurable, but AntiGravity should implement these as the starting contract unless a later reviewed change updates them.
+This document removes implementation ambiguity for Phase 1 onward. Values here are safe initial defaults for the dissertation laboratories and local scanner. They remain configurable, but AntiGravity should implement these as the starting contract unless a reviewed change updates them.
 
 ## 2. Local service ports
 
 Use these initial ports unless they conflict with the VM and a documented change is required:
 
 ```text
-Scanner web/API:            127.0.0.1:8000
-Mobile Money / FastAPI:     127.0.0.1:8101
-Revenue / Express:          127.0.0.1:8102
-Citizen Services / Spring:  127.0.0.1:8103
-OWASP ZAP local control:    Docker-internal/default unless explicitly exposed
+Scanner web/API:                 127.0.0.1:8000
+Citizen Records / FastAPI:       127.0.0.1:8101
+Public Health / Express:         127.0.0.1:8102
+Permit & Licensing / Spring:     127.0.0.1:8103
+OWASP ZAP local control:         Docker-internal/default unless explicitly exposed
 ```
 
 Labs should bind to loopback when run directly on the host. Docker Compose may use an isolated bridge internally while publishing only required lab ports to loopback.
 
 ## 3. Default scan profile — Safe Read-Only
-
-Initial defaults:
 
 ```yaml
 profile: safe-read-only
@@ -41,8 +39,6 @@ resource_control_tests: false
 These are ceilings, not performance targets. Rules should use fewer requests whenever possible.
 
 ## 4. Controlled Lab Full profile
-
-Initial defaults:
 
 ```yaml
 profile: controlled-lab-full
@@ -66,14 +62,14 @@ This profile is valid only when the target is explicitly classified as a control
 
 ## 5. Rule budgets
 
-A rule may define a lower budget than the scan-level ceiling. Initial guidance:
+Initial guidance:
 
 ```text
 read-only differential authorisation rule: <= 6 requests per operation/fixture case
-controlled mutation rule:                <= 8 requests including verification/cleanup
-configuration/header rule:               <= 3 requests per operation/target check
+controlled mutation rule:                 <= 8 requests including verification/cleanup
+configuration/header rule:                <= 3 requests per operation/target check
 inventory check:                          no unnecessary live probing
-resource-control rule:                   <= 20 requests total per bounded case
+resource-control rule:                    <= 20 requests total per bounded case
 ```
 
 If a rule cannot reach a reliable conclusion within its defined budget, return `INCONCLUSIVE` rather than silently increasing traffic.
@@ -86,7 +82,7 @@ Default:
 - at most one retry for a clearly transient transport failure on an idempotent operation;
 - no automatic retry for mutation tests;
 - no retry when a safety/scope check fails;
-- retry counts consume the request budget.
+- retry attempts consume the request budget.
 
 ## 7. Redirect policy
 
@@ -111,13 +107,13 @@ Default:
 
 ## 9. Scan result defaults
 
-Initial severity values:
+Severity values:
 
 ```text
 critical | high | medium | low | info
 ```
 
-Initial confidence values:
+Confidence values:
 
 ```text
 high | medium | low
@@ -161,10 +157,10 @@ file
 Example metadata only:
 
 ```yaml
-label: customer-a
+label: citizen-a
 auth_type: bearer
 secret_source: env
-secret_ref: LAB_MOBILE_MONEY_CUSTOMER_A_TOKEN
+secret_ref: LAB_CITIZEN_RECORDS_CITIZEN_A_TOKEN
 ```
 
 The resolved value must not be returned through the web API, rendered in templates, written to logs, persisted in SQLite or exported to reports.
@@ -178,32 +174,36 @@ vulnerable
 corrected
 ```
 
-The evaluation runner must verify the expected mode before running. Mutation-enabled scans must refuse an unexpected or unknown mode.
+The evaluation runner must verify expected lab ID/version/mode/fixture version before running. Mutation-enabled scans must refuse an unexpected or unknown mode.
 
 ## 13. Deterministic lab ports and IDs
 
-Initial identifiers:
-
 ```text
-mobile-money-fastapi      -> http://127.0.0.1:8101
-revenue-express           -> http://127.0.0.1:8102
-citizen-services-spring   -> http://127.0.0.1:8103
+citizen-records-fastapi    -> http://127.0.0.1:8101
+public-health-express      -> http://127.0.0.1:8102
+permit-licensing-spring    -> http://127.0.0.1:8103
 ```
 
-The scanner must remain target-language independent; these IDs are evaluation metadata only.
+These IDs are evaluation metadata only; the scanner remains independent of target language/framework.
 
 ## 14. Evaluation repetition default
 
-For final key experiments, start with **5 repeated runs per lab per mode per selected final profile**, unless methodology review later chooses another number. Record every run; do not discard an inconvenient run without a documented validity reason.
+For final key experiments, start with **5 repeated runs per lab per mode per selected final profile**, unless methodology review chooses another value before final collection. Record every run; do not discard an inconvenient run without a documented validity reason.
 
-This value is an initial experimental default, not a claim that five runs is statistically sufficient for every analysis.
+This is a stability/reproducibility default, not a claim of statistical sufficiency.
 
 ## 15. ZAP baseline default
 
-Use OWASP ZAP as a general-purpose baseline against the same reset laboratory state and scope. Keep ZAP request scope bounded to the lab. Record ZAP version/container identifier and configuration with each baseline dataset.
+Use OWASP ZAP as a general-purpose baseline against the same reset laboratory state and scope. Record ZAP version/container identifier and configuration with each baseline dataset.
 
-Do not force equivalence where ZAP does not implement the same multi-identity semantic authorisation test. Comparison must distinguish coverage difference from detector failure.
+Comparison must distinguish `EQUIVALENTLY_TESTABLE`, `PARTIALLY_TESTABLE` and `NOT_EQUIVALENTLY_TESTABLE` cases rather than forcing equivalence where ZAP does not implement the same controlled multi-identity semantics.
 
-## 16. Configuration change rule
+## 16. ZCHPC deployment default
 
-If implementation reveals that a default is impractical, change the documented default in the same PR and explain why. Never silently implement a different ceiling or safety policy than this file.
+There is no required ZCHPC runtime configuration. Local/VM/container execution is canonical and sufficient for completion.
+
+If explicit permission/resources are later granted, add a separate authorised deployment profile for the student's own isolated lab without changing scanner safety defaults or targeting ZCHPC production services.
+
+## 17. Configuration change rule
+
+If implementation reveals that a default is impractical, change the documented default in the same reviewed PR and explain why. Never silently implement a different ceiling, lab identity or safety policy than this file.
