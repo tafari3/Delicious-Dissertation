@@ -2,148 +2,91 @@
 
 ## 1. Status
 
-This file is the repository-local baseline for the submission-ready academic proposal approved for implementation planning in September 2026.
+This is the repository-local implementation baseline for the final proposal.
 
-**Project title:** *Automated API Security and Misconfiguration Scanner for Zimbabwean E-Government Systems: A Laboratory-Based Evaluation*
+**Project title:** *Automated API Security Testing and Misconfiguration Scanner for Zimbabwean E-Government Systems: A Laboratory-Based Evaluation*
 
-The purpose of this file is to keep implementation, tests, issues and dissertation evidence aligned with the current academic scope without relying on prior chat history. If the supervisor formally approves a scope change, update this file and every affected authoritative document in one reviewed change before implementation continues.
+The title and central topic are locked. ZCHPC is an evaluation context, not a replacement project topic.
 
-## 2. Current research scope
+## 2. Aim
 
-The dissertation focuses on Zimbabwean **e-government REST APIs** and controlled cloud/VM deployments.
+To design, implement and evaluate an automated API security testing and misconfiguration scanner for Zimbabwean e-government systems that identifies selected API security weaknesses and automatically generates reproducible security assessment reports, using a synthetic laboratory application for controlled validation and an authorised ZCHPC cloud environment for subsequent real-world validation.
 
-The project will design, implement and evaluate an automated API security testing and misconfiguration scanner that identifies selected:
+## 3. Technical objectives
 
-- authorisation weaknesses;
-- authentication and session weaknesses;
-- configuration/misconfiguration weaknesses;
-- endpoint/specification inventory weaknesses;
-- bounded resource-control observations.
+1. Design and implement a modular REST API security scanner with target allow-listing, request limits and secret redaction.
+2. Implement automated checks for selected OWASP API risks, including BOLA, BFLA, BOPLA, authentication/session, security misconfiguration and inventory weaknesses.
+3. Build a synthetic Government Permit and Service Application API on the ZCHPC-provided Linux VM with vulnerable and corrected states and independent ground truth.
+4. Automatically generate redacted HTML/PDF and machine-readable JSON/CSV reports containing findings, evidence, severity, OWASP/CWE classification and remediation guidance.
+5. Evaluate scanner accuracy, repeatability and report quality against ground truth and an applicable OWASP ZAP baseline, then validate the proven scanner within the authorised ZCHPC cloud scope.
 
-The scanner must produce reproducible, redacted evidence aligned with the OWASP API Security Top 10 (2023) and CWE where appropriate.
+## 4. Research questions
 
-## 3. Aim
+- **RQ1:** Which selected API authorisation, authentication, configuration and inventory weaknesses can the scanner detect reliably in the controlled laboratory?
+- **RQ2:** How accurately does the scanner identify seeded weaknesses when compared with independent ground truth and an applicable OWASP ZAP baseline?
+- **RQ3:** How consistently can the scanner generate redacted, reproducible and actionable security reports from its findings?
+- **RQ4:** After successful laboratory validation, how applicable and repeatable is the scanner within the formally authorised ZCHPC cloud scope?
 
-To design, implement and evaluate an automated API security testing and misconfiguration scanner that identifies selected authorisation, authentication, configuration and inventory weaknesses in representative Zimbabwean e-government REST APIs and produces reproducible, OWASP-aligned evidence.
+## 5. Controlled laboratory
 
-## 4. Objectives
+The academic accuracy experiment uses one small e-government test application built specifically for this dissertation:
 
-1. Review literature published from 2022 onward on Zimbabwean e-government, public-sector cybersecurity, cloud infrastructure and REST API security, together with OWASP API Security Top 10 (2023), to define a safe bounded test catalogue.
-2. Design a scanner architecture that accepts an authorised target, an OpenAPI/Postman description where available and controlled test identities while enforcing allow-listing, request-rate ceilings, secret redaction and non-destructive profiles.
-3. Implement automated checks for BOLA, BFLA, BOPLA/mass assignment, token/session weaknesses, CORS/TLS/security headers, risky HTTP methods, information leakage, exposed documentation, endpoint-inventory drift and bounded rate-limit behaviour.
-4. Build three deliberately vulnerable e-government laboratory APIs representing citizen-record, public-health-record and permit/licensing workflows. Each laboratory uses synthetic records, defined roles, documented independent ground truth and vulnerable/corrected behaviour across different implementation stacks.
-5. Evaluate the scanner against documented ground truth and OWASP ZAP using vulnerability coverage, precision, recall, F1 score, false-positive behaviour, scan time and repeatability of evidence.
+**Synthetic Government Permit and Service Application API**
 
-## 5. Research questions
+Canonical engineering ID: `government-permit-service-fastapi`.
 
-- **RQ1:** Which API-specific authorisation, authentication, configuration and inventory controls can be tested reliably using automated, specification-assisted testing with controlled user identities?
-- **RQ2:** How accurately does the proposed scanner identify seeded weaknesses across different REST API implementation stacks when compared with documented ground truth and OWASP ZAP?
-- **RQ3:** What trade-offs in false-positive rate, scan time and evidence quality arise when the selected checks are combined into one bounded security-testing workflow?
-- **RQ4:** How effectively can the scanner support e-government security assurance by translating technical test behaviour into reproducible, OWASP-aligned remediation evidence?
+The lab runs on the Linux VM already provided by ZCHPC and uses synthetic data only. It is not a replica of a named government system.
 
-## 6. Laboratory evaluation model
+Minimum roles: Applicant, Officer and Administrator; engineering fixtures also use two applicants so cross-user authorisation can be tested.
 
-The dissertation uses three representative synthetic e-government workflows:
+The lab must have:
 
-1. **Citizen Records API** — Python / FastAPI;
-2. **Public Health Records API** — Node.js / Express;
-3. **Permit & Licensing API** — Java / Spring Boot.
-
-The stack-to-scenario mapping may be changed only through a reviewed scope/design change while preserving three materially different implementation stacks.
-
-Each lab must have:
-
-- synthetic data only;
-- controlled test identities and roles;
+- vulnerable and corrected states;
 - deterministic seed/reset;
-- vulnerable and corrected modes;
-- machine-readable independent ground truth;
-- direct functional tests proving the intended vulnerable and corrected behaviour;
-- an API description suitable for scanner inventory testing;
-- loopback-only canonical exposure;
-- no dependency on a real government or production system.
+- synthetic users, records, documents and transactions;
+- OpenAPI description;
+- direct functional tests independent of scanner logic;
+- a machine-readable ground-truth manifest authored before final detector tuning/evaluation.
 
-The laboratories are representative workflows, not replicas of named ministries, agencies or national systems.
+## 6. Automatic reporting
 
-## 7. ZCHPC boundary
+After every completed scan the artefact must be able to generate:
 
-ZCHPC is a relevant Zimbabwean cloud/national-computing context. If formal permission and resources are granted, an isolated copy of the student's **own laboratory environment** may be hosted on an authorised ZCHPC test resource.
+- human-readable HTML;
+- human-readable PDF;
+- canonical JSON;
+- CSV analysis/export data.
 
-ZCHPC production services, management plane, hypervisor, network fabric, unrelated tenants and production government applications are **not** dissertation evaluation targets.
+Findings include affected endpoint/service, severity, confidence, expected versus observed behaviour, minimal redacted evidence, OWASP/CWE mapping where appropriate and remediation guidance. NIST/ISO references are contextual only and are not compliance determinations.
 
-The dissertation must remain fully completable without ZCHPC access by using student-controlled VM/container infrastructure.
+## 7. Controlled evaluation
 
-## 8. Evaluation commitments
+The lab is the source of quantitative accuracy claims. The evaluation records TP/FP/FN and TN/FPR only where the negative-unit denominator is defensible, plus precision, recall, F1, scan time, request count, errors/inconclusive outcomes and repeated-run/report reproducibility.
 
-The final evaluation must:
+OWASP ZAP is a general-purpose baseline only for cases where an equivalent observation is practical. Unsupported multi-identity semantics are coverage differences, not automatic ZAP false negatives.
 
-- establish ground truth before final scanner evaluation;
-- run the scanner against both vulnerable and corrected modes;
-- preserve all valid and invalid/failed runs with explicit validity reasons;
-- calculate TP, FP, FN and, where a defensible negative-case denominator is predeclared, TN;
-- calculate precision, recall and F1 score;
-- report false-positive rate only where TN is defensibly defined;
-- record scan duration and request counts;
-- repeat key runs to measure stability/reproducibility;
-- compare across the three implementation stacks;
-- use OWASP ZAP as a general-purpose baseline only where equivalent observation is practical;
-- distinguish `not equivalently tested` from `tested and missed` for ZAP comparison.
+## 8. Authorised ZCHPC validation
 
-## 9. Safety and ethics commitments
+A later real-world validation stage is part of the approved project. It starts only after the scanner passes the controlled laboratory evaluation.
 
-The project must enforce:
+The researcher has signed ZCHPC authorisation for the project. The implementation must still constrain every operational run to the exact approved assets, interfaces, accounts, traffic levels and time windows represented in local scope configuration/authorisation-reference metadata.
 
-- explicit authorised target scope;
-- non-destructive defaults;
-- strict request/rate/concurrency budgets;
-- stricter bounded resource-control budgets;
-- proof-of-condition stopping;
-- synthetic laboratory data only;
-- secret/token/cookie/password redaction before persistence/export;
-- no unauthorised production scanning;
-- no credential stuffing or password spraying;
-- no destructive/unrestricted fuzzing;
-- no denial-of-service, stress or saturation testing;
-- no exploitation beyond the minimum proof condition.
+The scanner uses a restricted non-destructive profile. It does not deliberately introduce weaknesses into operational ZCHPC infrastructure.
 
-## 10. Delimitations
+Permitted observations depend on the signed scope and may include authorised API/service exposure, approved authentication/access-control behaviour, TLS/HTTP security configuration, documentation exposure, service inventory differences and other safe externally observable deployment misconfigurations.
 
-Current dissertation scope excludes:
+Explicitly excluded unless separately and specifically authorised: VM escape, hypervisor exploitation, denial-of-service, lateral movement, unrelated tenants/assets, persistence and destructive fuzzing.
 
-- comprehensive GraphQL testing;
-- SOAP testing;
-- message-queue security testing;
-- native mobile-application testing;
-- source-code/static analysis;
-- full penetration testing;
-- cloud-management-plane or hypervisor assessment;
-- production-grade SaaS/multi-tenancy;
-- exploit chaining;
-- fintech and digital-payment API evaluation.
+Operational ZCHPC results are analysed separately from lab accuracy because complete operational ground truth may not exist.
 
-**Fintech is future work only** after the e-government dissertation implementation and evaluation are complete.
+## 9. Scope boundaries
 
-## 11. Terminology lock
+Current dissertation scope excludes additional academic labs/stacks, comprehensive GraphQL/SOAP/gRPC testing, source-code/static analysis, malware analysis, full hypervisor assessment, generic exploit chaining and unrestricted penetration testing.
 
-Repository documentation, code-facing descriptions, UI text and reports should use terminology consistent with the current proposal, including:
+Fintech, mobile-money, healthcare and additional e-government/commercial environments are future work only.
 
-- automated API security testing;
-- API-interface behaviour;
-- specification-assisted testing;
-- controlled test identities;
-- laboratory-based evaluation;
-- source-language independence / portability across implementation stacks.
+## 10. Research-integrity lock
 
-Do not reintroduce terminology from superseded proposal drafts merely because it remains in Git history.
+Ground truth, matching logic, metric formulas/state treatment and the final lab scanner profile must be frozen before final controlled data collection. Failed or inconvenient runs are retained with validity reasons.
 
-## 12. Traceability rule
-
-Every implementation phase must remain traceable to these academic commitments. Engineering may refine internal package names, algorithms and implementation details, but must not silently change:
-
-- the e-government-only evaluation scope;
-- the three representative laboratory classes;
-- the research questions;
-- the safety boundary;
-- the ground-truth/evaluation methodology;
-- the role of ZCHPC;
-- or the future-work status of fintech.
+No repository document, issue, UI or implementation may silently reintroduce the former three-lab requirement or make ZCHPC merely optional hosting.
