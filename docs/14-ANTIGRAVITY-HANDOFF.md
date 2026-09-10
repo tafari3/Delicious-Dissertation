@@ -2,206 +2,117 @@
 
 ## 1. Purpose
 
-This is the no-chat-context handoff for implementing the dissertation on the AntiGravity-connected VM. An implementation agent should be able to start from this repository alone, identify the active phase, implement it, prove it and continue through the documented roadmap without depending on undocumented conversation history.
+This is the no-chat-context execution handoff for the Linux VM already provided by ZCHPC. The repository is the source of truth.
 
-## 2. Current boundary
+## 2. Current execution boundary
 
-The repository is intentionally planning-first. Product implementation starts at:
+Start at **P1 — Repository and runtime foundation** on the existing branch:
 
-**P1 — Repository and runtime foundation**
+`phase-1/foundation`
 
-Canonical active branch:
+Before the first implementation change:
 
-```text
-phase-1/foundation
-```
+1. fetch/prune;
+2. check out `phase-1/foundation`;
+3. read issue #2;
+4. verify `git rev-parse HEAD` equals the exact handoff SHA recorded in issue #2;
+5. verify that SHA is the reconciled integrated `main` commit;
+6. stop and reconcile if either check fails.
 
-Canonical active issue:
+Do not create a competing P1 branch.
 
-```text
-#2 — P1 — Repository and runtime foundation
-```
+## 3. First read order
 
-Before the first implementation change, compare the branch head to the exact handoff SHA recorded in issue #2. If they differ, stop and reconcile rather than implementing from a stale branch.
+Read:
 
-## 3. First boot sequence
+1. `README.md`
+2. `docs/00A-ACADEMIC-PROPOSAL-BASELINE.md`
+3. `docs/00-PROJECT-CHARTER.md`
+4. `AGENTS.md`
+5. `docs/06-SAFETY-SECURITY-MODEL.md`
+6. `docs/12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md`
+7. `docs/11-RED-TEAM-ATTACK-MATRIX.md`
+8. `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`
+9. `docs/07-IMPLEMENTATION-PLAN.md`
+10. active phase issue and relevant architecture/reporting/config documents.
 
-On the VM:
+## 4. Final project shape
 
-```bash
-git clone https://github.com/tafari3/Delicious-Dissertation.git
-cd Delicious-Dissertation
-git fetch --all --prune
-git checkout phase-1/foundation
-git status
-git rev-parse HEAD
-```
+The topic is unchanged: **Automated API Security Testing and Misconfiguration Scanner for Zimbabwean E-Government Systems: A Laboratory-Based Evaluation**.
 
-Then read, in order:
+The current dissertation does **not** require three labs.
 
-```text
-README.md
-docs/00A-ACADEMIC-PROPOSAL-BASELINE.md
-docs/00-PROJECT-CHARTER.md
-AGENTS.md
-docs/06-SAFETY-SECURITY-MODEL.md
-docs/12-PRE-IMPLEMENTATION-HARDENING-LOCKS.md
-docs/11-RED-TEAM-ATTACK-MATRIX.md
-docs/13-LAB-EXPERIMENT-SPECIFICATION.md
-docs/07-IMPLEMENTATION-PLAN.md
-active GitHub phase issue
-```
+- P2 builds one `government-permit-service-fastapi` synthetic lab on this Linux VM.
+- P7 makes HTML/PDF/JSON/CSV automatic reporting a core feature.
+- P9 proves scanner accuracy/repeatability against frozen lab ground truth and applicable ZAP.
+- P10 performs later real-world validation against the actual ZCHPC cloud only within the existing signed authorisation and only after P9 passes.
 
-Read the additional architecture/data/journey/config documents relevant to the active phase before coding.
+Fintech/mobile-money/healthcare/additional government labs are future work.
 
-## 4. VM/system assumptions
+## 5. VM assumptions
 
-Do not assume a special proprietary runtime beyond the normal development tools that the active phase establishes or documents.
-
-P1 should leave the repository able to report missing system prerequisites clearly. The intended local tooling includes:
+P1 may assume ordinary Linux development only. Establish or report prerequisites rather than assuming they exist:
 
 - Git;
 - Python 3.12+;
-- `uv` as the preferred Python dependency workflow unless a documented blocker requires another approach;
-- Docker Engine and Docker Compose v2 for later laboratory phases;
+- preferred `uv` Python workflow unless blocked;
+- Docker Engine + Compose v2 for the lab where permitted;
 - standard build tools required by locked dependencies.
 
-Node.js and Java build/runtime dependencies are introduced and pinned in P2 when their laboratories become active. Do not make P1 unnecessarily install or implement the laboratory applications.
+Do not add Node/Java lab runtimes: the former three-stack model is superseded by the single FastAPI research lab.
 
-## 5. No-chat-context rule
+## 6. Phase loop
 
-If a decision matters to implementation, it must exist in GitHub documentation, an issue, a PR or code/tests. Do not guess from the repository name, stale Git history, prior chat assumptions or an older proposal.
+For each phase:
 
-The current academic baseline is e-government only:
+1. verify predecessor is merged and current branch starts from integrated `main`;
+2. read phase issue and applicable source-of-truth docs;
+3. identify acceptance/adversarial gates before coding;
+4. implement the smallest complete slice;
+5. add positive, corrected/negative, safety and adversarial tests;
+6. run `make verify` plus phase-specific integration/evaluation proof;
+7. fix failures without weakening expected behaviour;
+8. update docs/config when external behaviour changes;
+9. commit/push exact tested state;
+10. open/update the one phase PR;
+11. merge only when exact head is green and phase definition of done is satisfied;
+12. start the next phase from new integrated `main`.
 
-- Citizen Records laboratory;
-- Public Health Records laboratory;
-- Permit & Licensing laboratory;
-- synthetic data only;
-- fintech future work only;
-- optional authorised ZCHPC hosting of the student's own laboratory only.
+## 7. P1 objective
 
-## 6. Phase execution loop
+P1 establishes installable scanner/application foundations only: Python package, FastAPI health, Typer CLI, SQLAlchemy/migrations/SQLite, safe logging, tests/lint/typecheck, Makefile, Compose skeleton, CI/supply-chain hardening, secret scanning and documented future controlled HTTP client contract.
 
-For each phase P1 through P10:
-
-1. Verify all predecessor phases are merged and passing.
-2. Read the phase issue and authoritative documents.
-3. Identify the exact acceptance criteria and applicable CRITICAL/HIGH adversarial cases before coding.
-4. Create/use only the canonical branch for that phase; do not create competing duplicate branches.
-5. Inspect existing code/tests and implement the smallest complete slice consistent with the architecture.
-6. Add positive, corrected/negative, safety and adversarial tests required by the phase.
-7. Run the canonical verification gate and phase-specific integration/evaluation checks.
-8. Fix failures on the same branch; do not weaken expected behaviour to make tests pass.
-9. Update docs/config examples when implementation changes an externally relevant contract.
-10. Commit/push the exact tested state.
-11. Open or update the single phase PR with objective, evidence, tests, exact head SHA and unresolved lower-severity deferrals.
-12. Merge only when the exact head is green and the phase definition of done is satisfied, if the VM identity has permission to merge. If merge permission is unavailable, leave the PR ready and report that single external blocker rather than starting the next phase from an unmerged state.
-13. Start the next phase from the new integrated `main`, never from an unmerged or stale predecessor branch.
-
-## 7. P1 exact objective
-
-P1 creates the installable, reproducible development/runtime foundation only. It does **not** implement security detection rules or laboratories.
-
-Required P1 outputs include:
-
-- `pyproject.toml`;
-- reproducible Python lockfile;
-- `src/delicious_scanner/` package;
-- FastAPI application with `/health`;
-- Typer CLI with version/health functionality;
-- SQLAlchemy 2.x + migration framework + SQLite baseline;
-- structured secret-safe logging baseline;
-- pytest;
-- Ruff formatting/linting;
-- mypy or pyright;
-- root Docker Compose skeleton;
-- `.env.example` and `.gitignore`;
-- `.github/workflows/verify.yml`;
-- stable Makefile command surface;
-- SHA-pinned third-party Actions;
-- least-privilege workflow permissions;
-- PR-safe verification without privileged secrets;
-- repository secret-scanning gate;
-- terminal/control-sequence sanitisation baseline;
-- documented future HTTP-client contract with ambient proxy environment disabled by default.
-
-Required command surface after P1:
-
-```text
-make bootstrap
-make format
-make lint
-make typecheck
-make test
-make verify
-make app
-make labs-up
-make labs-down
-```
-
-`make verify` is the local and CI gate for normal phase verification once established.
+Do not implement the lab or detector rules prematurely.
 
 ## 8. P2 boundary
 
-Only after P1 is merged:
+After P1 merges, build only:
 
-- build `citizen-records-fastapi`;
-- build `public-health-express`;
-- build `permit-licensing-spring`;
-- implement deterministic seed/reset and vulnerable/corrected modes;
-- create machine-readable ground-truth manifests from `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`;
-- prove ground truth with direct lab tests independent of scanner detection logic.
+`labs/government-permit-service-fastapi/`
 
-Do not use scanner output to decide what the lab ground truth should say.
+with the roles, operations, seeded cases, vulnerable/corrected modes, deterministic reset, OpenAPI and ground truth in `docs/13-LAB-EXPERIMENT-SPECIFICATION.md`.
 
-## 9. Safety stop conditions for the implementation agent
+Scanner output never establishes ground truth.
 
-Stop the current change and surface a blocker when:
+## 9. P7 reporting boundary
 
-- a request would weaken target allow-listing or request ceilings;
-- a proposed feature requires real government/ZCHPC production scanning;
-- a test requires real personal/health/financial data;
-- a dependency introduces an unnecessary cloud/LLM/remote service requirement;
-- a phase would bypass a predecessor safety layer;
-- CRITICAL/HIGH adversarial tests fail;
-- ground truth would need to be changed merely because scanner results are inconvenient;
-- an unreviewed change would alter research questions, lab scenarios, metric formulas or dissertation scope.
+A reportable scan must generate HTML and PDF human-readable reports plus JSON and CSV machine-readable outputs. Report generation must use redacted/minimised durable findings and must not expose secrets or active target-controlled content.
 
-## 10. Research-integrity rule
+## 10. P9 research gate
 
-Keep three layers distinct:
+P9 completes controlled quantitative evaluation. Freeze methodology inputs before final collection and retain all runs with validity reasons. Do not proceed to ZCHPC operational validation while P9 safety/research-integrity gates are failing.
 
-```text
-LAB SERVICE + DIRECT CONTRACT TESTS
-        -> define actual seeded behaviour
+## 11. P10 ZCHPC boundary
 
-SCANNER
-        -> produces findings without reading ground truth
+P10 uses a local, non-committed `authorised-zchpc` profile reflecting the signed scope. Real hosts/IPs/credentials/authorisation documents/confidential operational data do not belong in Git.
 
-EVALUATION HARNESS
-        -> after scan, reads findings + frozen ground truth and computes matches/metrics
-```
+Operational scanning is non-destructive by default. Lab mutation permissions do not transfer. Do not seed vulnerabilities into ZCHPC, access unrelated tenants/assets, attempt VM escape/hypervisor exploitation, DoS/stress, persistence, lateral movement or destructive fuzzing.
 
-Detector code must not import/read ground-truth manifests. Evaluation matching must be deterministic and versioned.
+If the signed operational scope is ambiguous for a requested action, stop that action and require scope clarification instead of guessing.
 
-## 11. Definition of autonomous success
+## 12. Completion report
 
-The repository is ready for autonomous execution when an agent can:
-
-- clone from a clean VM;
-- identify current phase and exact starting commit;
-- implement without asking for missing product-scope decisions already covered by the docs;
-- run deterministic verification;
-- prove phase-specific safety/adversarial requirements;
-- create a reviewable PR with exact evidence;
-- continue sequentially after integration without relying on chat memory.
-
-Human/supervisor input is still required for genuine academic scope changes, ethics/authorisation decisions, or external permissions such as access to a ZCHPC resource. These are not implementation ambiguities to be guessed by an agent.
-
-## 12. Completion report format
-
-At the end of every execution slice, report:
+At the end of every slice report:
 
 ```text
 Phase/slice:
@@ -209,14 +120,12 @@ Branch:
 Head SHA:
 PR:
 Implemented:
-Files/components changed:
-Verification commands:
-Verification results:
-Adversarial IDs proven:
-Safety/research-integrity notes:
-Deferred MEDIUM/LOW cases with rationale:
+Verification commands/results:
+Adversarial IDs/results:
+Safety/research notes:
+Deferred lower-severity cases:
 Blockers:
 Exact next task:
 ```
 
-Never report a phase complete while mandatory checks are failing, required runtime/lab integration evidence is missing, or the exact tested commit is not identified.
+Never claim completion while mandatory checks, runtime/lab proof or exact-head evidence are missing.

@@ -2,26 +2,22 @@
 
 ## 1. Purpose
 
-This document removes implementation ambiguity for Phase 1 onward. Values here are safe initial defaults for the dissertation laboratories and local scanner. They remain configurable, but AntiGravity should implement these as the starting contract unless a reviewed change updates them.
+Safe initial defaults for implementation. Signed/approved operational limits always override these toward the more restrictive value.
 
-## 2. Local service ports
-
-Use these initial ports unless they conflict with the VM and a documented change is required:
+## 2. Local development ports
 
 ```text
-Scanner web/API:                 127.0.0.1:8000
-Citizen Records / FastAPI:       127.0.0.1:8101
-Public Health / Express:         127.0.0.1:8102
-Permit & Licensing / Spring:     127.0.0.1:8103
-OWASP ZAP local control:         Docker-internal/default unless explicitly exposed
+Scanner web/API:                        127.0.0.1:8000
+Government Permit/Service lab:         127.0.0.1:8101
+Lab database:                           internal/local only; no public host port by default
+OWASP ZAP control:                      internal/default unless explicitly required
 ```
 
-Labs should bind to loopback when run directly on the host. Docker Compose may use an isolated bridge internally while publishing only required lab ports to loopback.
+Lab ID: `government-permit-service-fastapi`.
 
-## 3. Default scan profile — Safe Read-Only
+## 3. `safe-read-only`
 
 ```yaml
-profile: safe-read-only
 requests_per_second: 5
 max_concurrency: 4
 max_total_requests: 500
@@ -36,104 +32,85 @@ mutation_tests: false
 resource_control_tests: false
 ```
 
-These are ceilings, not performance targets. Rules should use fewer requests whenever possible.
-
-## 4. Controlled Lab Full profile
+## 4. `controlled-lab-full`
 
 ```yaml
-profile: controlled-lab-full
 requests_per_second: 5
 max_concurrency: 4
 max_total_requests: 1000
 request_timeout_seconds: 10
 connect_timeout_seconds: 5
 max_redirects: 3
-follow_cross_host_redirects: false
-allow_https_to_http_downgrade: false
-max_response_capture_bytes: 262144
-max_evidence_excerpt_bytes: 16384
 mutation_tests: true
 resource_control_tests: true
 resource_requests_per_second: 1
 resource_max_total_requests: 20
 ```
 
-This profile is valid only when the target is explicitly classified as a controlled dissertation laboratory or another specifically authorised disposable test environment.
+Valid only for the disposable synthetic lab or another explicitly controlled disposable target.
 
-## 5. Rule budgets
+## 5. `authorised-zchpc`
 
-Initial guidance:
+Initial engineering ceiling before applying any stricter signed-scope limit:
 
-```text
-read-only differential authorisation rule: <= 6 requests per operation/fixture case
-controlled mutation rule:                 <= 8 requests including verification/cleanup
-configuration/header rule:                <= 3 requests per operation/target check
-inventory check:                          no unnecessary live probing
-resource-control rule:                    <= 20 requests total per bounded case
+```yaml
+requests_per_second: 2
+max_concurrency: 2
+max_total_requests: 200
+request_timeout_seconds: 10
+connect_timeout_seconds: 5
+max_redirects: 2
+follow_cross_host_redirects: false
+allow_https_to_http_downgrade: false
+mutation_tests: false
+resource_control_tests: false
+require_authorisation_reference: true
+require_exact_address_scope: true
 ```
 
-If a rule cannot reach a reliable conclusion within its defined budget, return `INCONCLUSIVE` rather than silently increasing traffic.
+These are not a claim that the signed authorisation permits this much traffic. Runtime configuration must use the minimum of repository safety ceilings and the actual approved limits. If the signed scope is narrower or unclear, preflight blocks.
 
-## 6. Retry policy
+## 6. Rule budgets
 
-Default:
+```text
+read-only differential authorisation: <= 6 requests per case
+controlled lab mutation:              <= 8 requests incl. verification/cleanup
+configuration/header check:           <= 3 requests per check
+resource-control case:                <= 20 requests total, lab/explicit-authorisation only
+```
 
-- zero retries for normal deterministic scanner requests;
-- at most one retry for a clearly transient transport failure on an idempotent operation;
-- no automatic retry for mutation tests;
-- no retry when a safety/scope check fails;
-- retry attempts consume the request budget.
+If proof cannot be reached safely within budget, return `INCONCLUSIVE` rather than increasing traffic.
 
-## 7. Redirect policy
+## 7. Retry/redirect defaults
 
-Default:
+- zero retries for normal deterministic requests;
+- at most one retry for clearly transient idempotent transport failure;
+- no automatic mutation retry;
+- no retry after safety/scope failure;
+- every retry/redirect hop consumes budget;
+- cross-authority redirect blocked by default;
+- credentials never forwarded to unvalidated authority.
 
-- same scheme + host + port only;
-- maximum 3 redirects;
-- every redirect target revalidated before following;
-- HTTPS-to-HTTP downgrade denied;
-- cross-host redirects blocked;
-- blocked redirect becomes a structured observation/error, not an automatic follow.
+## 8. Evidence/report defaults
 
-## 8. Evidence defaults
-
-- canonical persisted evidence format: structured JSON;
-- maximum captured response material in memory: 256 KiB per response before truncation handling;
-- maximum persisted evidence excerpt: 16 KiB;
 - redact before persistence;
-- binary bodies: metadata only unless a future explicit rule requires otherwise;
-- known runtime secrets replaced with `[REDACTED]`;
-- no credential hashes stored as substitutes.
+- canonical evidence: structured JSON;
+- max response capture: 256 KiB;
+- max persisted excerpt: 16 KiB;
+- binary bodies metadata-only unless a specific safe rule needs otherwise;
+- runtime-known secrets -> `[REDACTED]`;
+- report formats: HTML, PDF, JSON, CSV;
+- ZCHPC operational reports default to restricted/confidential handling until explicitly sanitised for research publication.
 
-## 9. Scan result defaults
+## 9. Result states
 
-Severity values:
+`NOT_APPLICABLE`, `PASS_OBSERVED`, `CONFIRMED`, `SUSPECTED`, `INFORMATIONAL`, `INCONCLUSIVE`, `ERROR`.
 
-```text
-critical | high | medium | low | info
-```
+Severity: `critical | high | medium | low | info`.
 
-Confidence values:
+Confidence: `high | medium | low`.
 
-```text
-high | medium | low
-```
-
-Rule execution states:
-
-```text
-NOT_APPLICABLE
-PASS_OBSERVED
-CONFIRMED
-SUSPECTED
-INFORMATIONAL
-INCONCLUSIVE
-ERROR
-```
-
-## 10. Database/runtime paths
-
-Recommended local defaults:
+## 10. Runtime paths
 
 ```text
 .data/scanner.db
@@ -141,69 +118,17 @@ Recommended local defaults:
 .data/runtime/
 reports/
 evaluation/outputs/runtime/
+.local/zchpc/           # local/ignored operational configuration only
 ```
 
-These should be Git-ignored. Version-controlled sanitised research datasets belong in a separate clearly named evaluation artefact path only after review.
+All runtime and operational-sensitive paths are Git-ignored.
 
-## 11. Identity secret references
+## 11. Repetition and ZAP
 
-Initial supported runtime secret sources:
+The exact controlled-lab repeat count is frozen before final data collection. Every run is retained with validity metadata. Do not claim statistical significance solely from a small repetition count.
 
-```text
-env
-file
-```
+Use a pinned/documented ZAP version/configuration against the same controlled lab state. Record equivalently/partially/not-equivalently testable status.
 
-Example metadata only:
+## 12. Change rule
 
-```yaml
-label: citizen-a
-auth_type: bearer
-secret_source: env
-secret_ref: LAB_CITIZEN_RECORDS_CITIZEN_A_TOKEN
-```
-
-The resolved value must not be returned through the web API, rendered in templates, written to logs, persisted in SQLite or exported to reports.
-
-## 12. Laboratory modes
-
-Each lab must expose deterministic mode metadata:
-
-```text
-vulnerable
-corrected
-```
-
-The evaluation runner must verify expected lab ID/version/mode/fixture version before running. Mutation-enabled scans must refuse an unexpected or unknown mode.
-
-## 13. Deterministic lab ports and IDs
-
-```text
-citizen-records-fastapi    -> http://127.0.0.1:8101
-public-health-express      -> http://127.0.0.1:8102
-permit-licensing-spring    -> http://127.0.0.1:8103
-```
-
-These IDs are evaluation metadata only; the scanner remains independent of target language/framework.
-
-## 14. Evaluation repetition default
-
-For final key experiments, start with **5 repeated runs per lab per mode per selected final profile**, unless methodology review chooses another value before final collection. Record every run; do not discard an inconvenient run without a documented validity reason.
-
-This is a stability/reproducibility default, not a claim of statistical sufficiency.
-
-## 15. ZAP baseline default
-
-Use OWASP ZAP as a general-purpose baseline against the same reset laboratory state and scope. Record ZAP version/container identifier and configuration with each baseline dataset.
-
-Comparison must distinguish `EQUIVALENTLY_TESTABLE`, `PARTIALLY_TESTABLE` and `NOT_EQUIVALENTLY_TESTABLE` cases rather than forcing equivalence where ZAP does not implement the same controlled multi-identity semantics.
-
-## 16. ZCHPC deployment default
-
-There is no required ZCHPC runtime configuration. Local/VM/container execution is canonical and sufficient for completion.
-
-If explicit permission/resources are later granted, add a separate authorised deployment profile for the student's own isolated lab without changing scanner safety defaults or targeting ZCHPC production services.
-
-## 17. Configuration change rule
-
-If implementation reveals that a default is impractical, change the documented default in the same reviewed PR and explain why. Never silently implement a different ceiling, lab identity or safety policy than this file.
+If implementation reveals a default is impractical, update this document in the same reviewed change. Never silently weaken a hard safety ceiling or operational authorisation boundary.
