@@ -1,4 +1,4 @@
-# AGENTS.md — AntiGravity Execution Contract
+# AGENTS.md — Execution Contract
 
 ## 1. Purpose
 
@@ -30,21 +30,27 @@ Use this order when instructions conflict:
 
 Build an automated REST API security testing and misconfiguration scanner for Zimbabwean e-government systems. The scanner must safely identify selected weaknesses and automatically generate reproducible, redacted security assessment reports.
 
-Do not change the dissertation topic into a ZCHPC cloud scanner. ZCHPC is the later authorised real-world validation environment.
+The locked project title is **Automated API Security Testing and Misconfiguration Scanner for Zimbabwean E-Government Systems: A Cloud-Based Evaluation**.
+
+Do not change the dissertation into a Xen Orchestra or full-cloud penetration-testing project. XCP-ng/Xen Orchestra is the controlled Stage 1 evaluation environment; ZCHPC is the authorised Stage 2 real-world validation environment.
 
 ## 4. Evaluation model
 
-### Stage A — controlled laboratory
+### Stage 1 — controlled replica cloud
 
-Build one dissertation-specific lab on the ZCHPC-provided Linux VM:
+Build one dissertation-specific application lab inside a small XCP-ng/Xen Orchestra research cloud:
 
 `government-permit-service-fastapi`
 
-It must use synthetic users/data only, vulnerable and corrected modes, deterministic reset, controlled roles and independent machine-readable ground truth.
+XCP-ng is the hypervisor. Xen Orchestra is the management/orchestration layer. The deployment uses a few VMs/logical roles, with the scanner and target separated. Database/supporting services may be separated or consolidated according to documented resource constraints.
 
-### Stage B — authorised ZCHPC validation
+Use synthetic users/data only, vulnerable and corrected modes, deterministic reset, controlled roles and independent machine-readable ground truth.
 
-Only after the P9 controlled-lab gate passes, P10 may use the scanner within the exact signed ZCHPC authorisation boundary. Operational scope must be represented by explicit local configuration and non-secret authorisation-reference metadata.
+The replica cloud may also contain selected reversible deployment/network misconfigurations with predeclared expected secure states. Do not use destructive hypervisor exploitation, VM escape or denial-of-service.
+
+### Stage 2 — authorised ZCHPC validation
+
+Only after the controlled-cloud gate passes may the scanner be used within the exact signed ZCHPC authorisation boundary. Operational scope must be represented by explicit local configuration and non-secret authorisation-reference metadata.
 
 Never deliberately weaken the operational ZCHPC environment to create findings. Do not access unrelated tenants/assets or exceed approved interfaces, identities, traffic levels or time windows.
 
@@ -75,8 +81,9 @@ Never deliberately weaken the operational ZCHPC environment to create findings. 
 - Rule modules may not create unrestricted HTTP clients.
 - Never convert `ERROR` or `INCONCLUSIVE` into a pass.
 - Do not confirm vulnerabilities from HTTP status alone.
-- Do not alter lab ground truth after seeing scanner results to improve metrics.
-- Do not add a second/third academic lab unless the academic baseline is explicitly amended.
+- Do not alter controlled ground truth after seeing scanner results to improve metrics.
+- Do not add a second/third academic application lab unless the academic baseline is explicitly amended.
+- Do not collapse Stage 1 back into a standalone single-VM experiment.
 
 ## 7. Rule states
 
@@ -88,35 +95,31 @@ Severity and confidence are separate fields.
 
 ## 8. Reporting contract
 
-Automatic reporting is a core feature. P7/P8 must provide:
+Automatic reporting is a core feature. P7/P8 must provide HTML, PDF, canonical JSON and CSV outputs with findings, severity, confidence, expected-versus-observed behaviour, minimal redacted evidence, OWASP/CWE mapping, remediation guidance, limitations/inconclusive/error states and provenance.
 
-- HTML report;
-- PDF report;
-- canonical JSON report;
-- CSV research/export data;
-- findings with endpoint/service, severity, confidence, expected-versus-observed behaviour, minimal redacted evidence, OWASP/CWE mapping and remediation guidance;
-- explicit limitations/inconclusive/error sections;
-- provenance including scanner commit, rule version, target/profile/spec hashes where applicable and request/timing data.
+NIST/ISO references are contextual mappings only and must never be presented as compliance certification.
 
 ## 9. Controlled lab contract
 
-The canonical academic lab is `government-permit-service-fastapi`, implemented with FastAPI and a small relational database unless a concrete blocker is documented.
+The canonical academic application lab is `government-permit-service-fastapi`, implemented with FastAPI and a small relational database unless a concrete blocker is documented.
 
 Minimum roles: `applicant-a`, `applicant-b`, `officer`, `admin`.
 
-The lab must provide vulnerable/corrected states, synthetic fixtures, OpenAPI, deterministic seed/reset, direct functional tests and a versioned ground-truth manifest.
+The application must provide vulnerable/corrected states, synthetic fixtures, OpenAPI, deterministic seed/reset, direct functional tests and a versioned ground-truth manifest.
+
+Controlled cloud cases receive stable IDs and independent direct proof of vulnerable/corrected or insecure/secure state before final scanner evaluation.
 
 ## 10. Research integrity
 
-Keep three layers separate:
+Keep these layers separate:
 
 ```text
-LAB + DIRECT CONTRACT TESTS -> establish actual seeded behaviour
-SCANNER                    -> produces findings without ground truth
-EVALUATION HARNESS          -> compares findings with frozen ground truth
+LAB + DIRECT CONTRACT/CONFIG TESTS -> establish actual seeded behaviour
+SCANNER                            -> produces findings without ground truth
+EVALUATION HARNESS                 -> compares findings with frozen ground truth
 ```
 
-P9 freezes the lab ground truth, matcher, metric formulas/state treatment, scanner profile and ZAP baseline before final controlled data collection.
+P9 freezes the controlled-cloud ground truth, matcher, metric formulas/state treatment, scanner profile and ZAP baseline before final data collection.
 
 P10 analyses ZCHPC validation separately because complete operational ground truth may not exist.
 
@@ -131,8 +134,8 @@ P10 analyses ZCHPC validation separately because complete operational ground tru
 
 ## 12. Current execution boundary
 
-Planning is reconciled. Begin **P1 only** after verifying `phase-1/foundation` equals the exact handoff SHA recorded in issue #2.
+Complete the current scope reconciliation first. Then begin **P1 only** after verifying `phase-1/foundation` equals the exact integrated handoff SHA recorded in issue #2.
 
-P2 may not start before P1 merges. P5 may not start before P4 safe execution is proven. P10 ZCHPC validation may not start before P9 controlled-lab validation has passed its safety and research-integrity gate.
+P2 may not start before P1 merges. P5 may not start before P4 safe execution is proven. P10 ZCHPC validation may not start before P9 controlled-cloud validation has passed its safety and research-integrity gate.
 
 At the end of each slice report: phase, branch, exact head SHA, PR, implemented work, verification commands/results, adversarial IDs/results, safety/research notes, blockers and exact next task.

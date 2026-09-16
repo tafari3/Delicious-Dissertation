@@ -2,28 +2,28 @@
 
 ## 1. Delivery principle
 
-AntiGravity implements the dissertation sequentially. A phase is complete only when its implementation, automated tests, safety controls, adversarial gates and reproducible evidence all pass on the exact phase head.
+Implement the dissertation sequentially. A phase is complete only when its implementation, automated tests, safety controls, adversarial gates and reproducible evidence all pass on the exact phase head.
 
 Canonical sequence:
 
 ```text
 P1  Repository and runtime foundation
-P2  Synthetic permit/service laboratory and independent ground truth
+P2  Synthetic permit/service lab, replica-cloud deployment definition and independent ground truth
 P3  Specification ingestion and endpoint inventory
 P4  Safety, persistence, identity and controlled HTTP execution
 P5  Authorisation engine
 P6  Authentication/configuration/inventory/resource rules
 P7  Evidence, findings and automatic reporting
 P8  Dashboard and CLI completion
-P9  Controlled laboratory evaluation and OWASP ZAP baseline
+P9  Controlled XCP-ng/Xen Orchestra cloud evaluation and OWASP ZAP baseline
 P10 Authorised ZCHPC cloud validation and final research release
 ```
 
-The topic remains Zimbabwean e-government API security. The controlled lab establishes measurable scanner accuracy. ZCHPC is the later authorised real-world validation environment.
+The topic remains Zimbabwean e-government API security. The controlled cloud establishes measurable scanner accuracy. ZCHPC is the later authorised real-world validation environment.
 
 ## 2. P1 — Repository and runtime foundation
 
-Create a clean, installable Python application and deterministic developer/CI command surface. Do not implement the lab or active scanner rules yet.
+Create a clean, installable Python application and deterministic developer/CI command surface. Do not implement the synthetic lab or active scanner rules yet.
 
 Required outputs include:
 
@@ -39,7 +39,8 @@ Required outputs include:
 - full-SHA third-party Actions, least-privilege permissions and PR-safe verification;
 - repository secret scanning;
 - terminal-control sanitisation baseline;
-- documented future `httpx` target client contract with ambient proxy environment ignored by default.
+- documented future `httpx` target client contract with ambient proxy environment ignored by default;
+- `infra/replica-cloud/README.md` placeholder that records the Stage 1 deployment contract without inventing environment-specific IPs/VLANs/storage.
 
 Stable command surface:
 
@@ -57,13 +58,13 @@ make labs-down
 
 **Exit gate:** clean checkout bootstraps, app/CLI run, migrations work, `make verify` passes and applicable P1 CRITICAL/HIGH attack cases pass.
 
-## 3. P2 — Synthetic permit/service laboratory and independent ground truth
+## 3. P2 — Synthetic application lab, replica-cloud definition and independent ground truth
 
-Build one research target before scanner detector tuning:
+Build one research application target before scanner detector tuning:
 
 `labs/government-permit-service-fastapi/`
 
-Required:
+Required application outputs:
 
 - FastAPI + small relational database;
 - synthetic users/data only;
@@ -75,10 +76,20 @@ Required:
 - direct functional tests independent of scanner code;
 - `ground-truth/manifest.yaml`;
 - locked dependencies;
-- loopback/controlled local exposure on the provided Linux VM;
+- controlled local/container exposure;
 - no production service dependency.
 
-**Exit gate:** every headline seeded case is independently proven vulnerable in vulnerable mode and corrected in corrected mode; unrelated workflow semantics remain aligned; reset and ground truth are deterministic; applicable `RT-LAB-*` gates pass.
+Required replica-cloud definition:
+
+- XCP-ng identified as hypervisor and Xen Orchestra as management/orchestration;
+- scanner and target separated into distinct logical VM roles;
+- database/supporting VM separate where resources permit, otherwise a documented consolidation;
+- management and service/test network roles documented without hard-coding invented production details;
+- controlled case catalogue for selected reversible deployment/network weaknesses;
+- direct proof procedure and expected secure state for every controlled cloud case;
+- no destructive hypervisor testing.
+
+**Exit gate:** every headline application case is independently proven vulnerable in vulnerable mode and corrected in corrected mode; selected cloud cases have independently proven insecure/secure states; reset/state restoration is deterministic; applicable `RT-LAB-*` gates pass.
 
 ## 4. P3 — Specification ingestion and endpoint inventory
 
@@ -106,14 +117,15 @@ Every rule needs applicability, proof, corrected-negative, budget, redaction and
 
 **Exit gate:** applicable seeded cases in `government-permit-service-fastapi` are detected without false confirmation of corrected cases; semantic adversarial gates pass.
 
-## 7. P6 — Authentication, configuration, inventory and bounded resource rules
+## 7. P6 — Authentication, configuration, inventory and bounded resource/deployment rules
 
 Implement the locked non-authorisation catalogue where deterministic and safe:
 
 - `AUTHN-MISSING-001`, `AUTHN-INVALID-001`, `AUTHN-EXPIRED-001`, `AUTHN-SESSION-001`, `AUTHN-INCONSISTENT-001`;
 - `CONFIG-CORS-001`, `CONFIG-HEADERS-001`, `CONFIG-TLS-001`, `CONFIG-ERROR-001`, `CONFIG-METHOD-001`, `CONFIG-DOCS-001`;
 - `INVENTORY-DIFF-001/002`, `INVENTORY-AUTH-001`;
-- `RESOURCE-RATE-001` and optional `RESOURCE-SIZE-001` under strict sub-budgets.
+- `RESOURCE-RATE-001` and optional `RESOURCE-SIZE-001` under strict sub-budgets;
+- selected bounded externally observable deployment checks that correspond to frozen controlled-cloud cases and do not require destructive or privileged hypervisor exploitation.
 
 Unsupported/unprovable cases remain `NOT_APPLICABLE` or `INCONCLUSIVE`.
 
@@ -134,6 +146,8 @@ Required:
 - provenance, request counts/timings and safe reproduction guidance;
 - controlled export paths and operational-confidentiality handling.
 
+NIST/ISO mappings are contextual and must not be presented as compliance certification.
+
 **Exit gate:** known fixture secrets are absent from DB/log/HTML/PDF/JSON/CSV; report/schema/injection adversarial cases pass.
 
 ## 9. P8 — Dashboard and CLI completion
@@ -142,13 +156,17 @@ Complete equivalent browser and CLI workflows for project/target/spec/identity c
 
 Local web safety requires loopback default bind, Host validation, no permissive CORS, CSRF protection, escaped target content and safe export paths.
 
-## 10. P9 — Controlled laboratory evaluation and OWASP ZAP baseline
+## 10. P9 — Controlled XCP-ng/Xen Orchestra cloud evaluation and OWASP ZAP baseline
 
-Build the deterministic evaluation harness for the single controlled lab.
+Deploy/verify the frozen Stage 1 replica cloud and run the deterministic evaluation harness.
 
 Required:
 
+- verified XCP-ng/Xen Orchestra lab topology and logical-role inventory;
+- scanner and target separation;
+- controlled management/service network assumptions recorded from the actual lab;
 - reset/version/mode/fixture verification;
+- controlled cloud case state verification;
 - evaluation-only ground-truth ingestion;
 - detector/ground-truth architectural separation;
 - deterministic case matching;
@@ -160,7 +178,7 @@ Required:
 - JSON/CSV research datasets with run-validity reasons;
 - frozen ground truth, matcher, metric/state treatment, scanner profile and ZAP configuration before final controlled collection.
 
-**Exit gate:** one documented sequence runs the controlled experiment reproducibly and all applicable `RT-EVAL-*`/`RT-LAB-005` gates pass.
+**Exit gate:** one documented sequence restores/verifies the controlled cloud, runs the scanner/evaluation reproducibly, demonstrates all safety gates and passes applicable `RT-EVAL-*`/`RT-LAB-005` checks.
 
 ## 11. P10 — Authorised ZCHPC cloud validation and final research release
 
@@ -175,14 +193,14 @@ Before any operational request:
 
 Potential observations are limited to the approved externally observable surface, such as API/service exposure, approved authentication/access-control behaviour, TLS/HTTP security configuration, documentation exposure, service inventory differences and safe deployment misconfigurations.
 
-Never deliberately introduce weaknesses into operational ZCHPC infrastructure. No VM escape, hypervisor exploitation, DoS/stress, persistence, lateral movement, unrelated tenants/assets or destructive fuzzing.
+Never deliberately introduce weaknesses into operational ZCHPC infrastructure. No VM escape, hypervisor exploitation, DoS/stress, persistence, lateral movement, unrelated tenants/assets or destructive fuzzing unless an exact action is separately and explicitly authorised; the default project method excludes them.
 
 Operational results are analysed separately from controlled accuracy. Do not calculate recall/FN/FPR against ZCHPC unless a defensible complete independent denominator actually exists. Do not describe a limited validation as certification of the entire cloud.
 
-Final release includes clean-environment reproduction, complete scanner/report regression, controlled evaluation evidence, a sanitised ZCHPC validation summary where publishable, final limitations and an immutable release identifier. Confidential operational data remains outside Git/public artefacts.
+Final release includes clean-environment reproduction, complete scanner/report regression, controlled-cloud evaluation evidence, a sanitised ZCHPC validation summary where publishable, final limitations and an immutable release identifier. Confidential operational data remains outside Git/public artefacts.
 
 ## 12. Scope lock
 
-Do not reintroduce the former three-lab requirement. Additional e-government, fintech, mobile-money, healthcare or commercial labs are future work only.
+Do not reintroduce the former three-application-lab requirement. Additional e-government, fintech, mobile-money, healthcare or commercial labs are future work only.
 
-A change to the research questions, one-lab model, ZCHPC validation boundary, metric semantics or CRITICAL/HIGH expected-safe behaviour requires an explicit reviewed scope/methodology change before code follows it.
+A change to the research questions, one-application-lab model, two-stage cloud evaluation, ZCHPC validation boundary, metric semantics or CRITICAL/HIGH expected-safe behaviour requires an explicit reviewed scope/methodology change before code follows it.
