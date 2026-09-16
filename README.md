@@ -1,15 +1,19 @@
 # Delicious Dissertation
 
-Engineering repository for the University of Zimbabwe capstone project **Automated API Security Testing and Misconfiguration Scanner for Zimbabwean E-Government Systems: A Laboratory-Based Evaluation**.
+Engineering repository for the University of Zimbabwe capstone project **Automated API Security Testing and Misconfiguration Scanner for Zimbabwean E-Government Systems: A Cloud-Based Evaluation**.
 
 ## Final research shape
 
-The topic is unchanged. The artefact is a safe, automated REST API security testing and misconfiguration scanner for Zimbabwean e-government systems. It must identify selected API security weaknesses, preserve reproducible redacted evidence, and automatically generate security assessment reports.
+The artefact is a safe, automated REST API security testing and misconfiguration scanner for Zimbabwean e-government systems. It must identify selected API security weaknesses, preserve reproducible redacted evidence, and automatically generate security assessment reports.
 
-The dissertation uses a staged evaluation:
+The cloud is the evaluation environment, not a replacement contribution. The scanner remains the primary research artefact.
 
-1. **Controlled laboratory validation** — build one small **Synthetic Government Permit and Service Application API** specifically for the dissertation on the Linux VM already provided by ZCHPC. The lab uses synthetic users/data, vulnerable and corrected states, deterministic reset and independent ground truth.
-2. **Authorised ZCHPC cloud validation** — only after the controlled lab gate passes, apply the proven scanner within the exact scope covered by the existing signed ZCHPC authorisation. This stage uses a restricted non-destructive profile and is analysed separately from lab accuracy because complete operational ground truth may not be known.
+The dissertation uses a two-stage evaluation:
+
+1. **Controlled replica-cloud validation** — build a small **XCP-ng + Xen Orchestra** research cloud with a few VMs, then deploy one **Synthetic Government Permit and Service Application API** and the scanner inside that controlled environment. The lab uses synthetic users/data, vulnerable and corrected states, deterministic reset, selected deliberately seeded API/deployment weaknesses and independent frozen ground truth.
+2. **Authorised ZCHPC cloud validation** — only after the controlled replica-cloud gate passes, apply the proven scanner within the exact scope covered by the existing signed ZCHPC authorisation. This stage uses a restricted non-destructive profile and is analysed separately from controlled accuracy because complete operational ground truth may not be known.
+
+XCP-ng is the hypervisor. Xen Orchestra is the management/orchestration layer and may run as a VM/appliance or on another approved management node. The controlled cloud should resemble the relevant ZCHPC virtualisation pattern without claiming to be an exact production clone.
 
 The scanner must not deliberately introduce weaknesses into the operational ZCHPC environment and must not test assets, tenants, accounts, interfaces, traffic levels or time windows outside the signed scope.
 
@@ -25,18 +29,31 @@ Planned scanner capabilities include:
 - selected CORS/TLS/security-header/error/method/documentation checks;
 - API inventory-drift checks;
 - tightly bounded resource-control observations;
+- selected safe deployment/cloud misconfiguration observations where they are deterministic and within scope;
 - evidence minimisation and secret redaction;
 - automatic **HTML and PDF** human-readable reports;
 - automatic **JSON and CSV** machine-readable exports;
 - OWASP API Security Top 10 / CWE classification and remediation guidance;
-- reproducible controlled-lab evaluation and an applicability-aware OWASP ZAP baseline;
+- reproducible controlled-cloud evaluation and an applicability-aware OWASP ZAP baseline;
 - later authorised ZCHPC real-world validation.
 
-## Controlled lab
+NIST and ISO mappings are contextual/informative only; the project does not claim to certify compliance.
 
-Canonical lab ID: `government-permit-service-fastapi`
+## Controlled replica cloud
 
-Minimum roles:
+Canonical application lab ID: `government-permit-service-fastapi`.
+
+Minimum logical deployment roles:
+
+- XCP-ng host providing the controlled virtualisation layer;
+- Xen Orchestra management/orchestration service;
+- scanner VM;
+- synthetic e-government API VM;
+- database/supporting service either on a separate VM or colocated with the API VM if resources require it.
+
+The scanner and target must remain logically distinguishable even if a constrained lab consolidates supporting services. Management access should be separated from the service/test network wherever the available infrastructure permits.
+
+Minimum application roles:
 
 - `applicant-a`
 - `applicant-b`
@@ -55,11 +72,17 @@ Representative operations:
 
 The lab is a research testbed, not a replica of a named ministry or public body.
 
+## Ground truth and cloud cases
+
+Application and selected deployment/cloud cases are declared before final scanner tuning. Example case classes include object/function/property authorisation, authentication, CORS, error handling, documentation exposure, inventory drift, exposed management/service ports, incorrect network reachability, insecure service binding and other bounded deployment observations that can be safely created and corrected in the replica cloud.
+
+Ground truth is established independently through direct lab/configuration proof. Scanner detector logic cannot read the ground-truth manifest when deciding whether a condition exists.
+
 ## Current state
 
-Planning has been reconciled to the final proposal. The next implementation phase is **P1 — Repository and runtime foundation** on the existing `phase-1/foundation` branch.
+Planning is being reconciled to the final two-stage cloud evaluation design. After this reconciliation is integrated, **P1 — Repository and runtime foundation** continues on the existing `phase-1/foundation` branch.
 
-Before AntiGravity starts P1, that branch must point to the same reconciliation commit as `main`, and issue #2 must record the same exact SHA.
+Before P1 starts, that branch must point to the exact integrated reconciliation commit recorded in issue #2.
 
 ## Authoritative documents
 
@@ -90,6 +113,7 @@ src/delicious_scanner/
 tests/
 labs/government-permit-service-fastapi/
 evaluation/
+infra/replica-cloud/
 reports/
 migrations/
 scripts/
@@ -100,14 +124,14 @@ scripts/
 
 ```text
 P1  Repository and runtime foundation
-P2  Synthetic permit/service lab and independent ground truth
+P2  Synthetic permit/service lab, replica-cloud deployment definition and independent ground truth
 P3  Specification ingestion and endpoint inventory
 P4  Safety, persistence, identity and controlled HTTP execution
 P5  Authorisation engine
 P6  Authentication/configuration/inventory/resource rules
 P7  Evidence, findings and automatic reporting
 P8  Dashboard and CLI completion
-P9  Controlled laboratory evaluation and OWASP ZAP baseline
+P9  Controlled XCP-ng/Xen Orchestra cloud evaluation and OWASP ZAP baseline
 P10 Authorised ZCHPC cloud validation and final research release
 ```
 
