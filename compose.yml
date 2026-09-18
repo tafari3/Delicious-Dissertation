@@ -1,0 +1,10 @@
+services:
+  scanner:
+    build: .
+    command: uv run uvicorn delicious_scanner.app:app --host 0.0.0.0 --port 8000
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: [scanner-data:/app/.data]
+    environment:
+      DELICIOUS_DATABASE_URL: sqlite:///.data/scanner.db
+volumes:
+  scanner-data:
