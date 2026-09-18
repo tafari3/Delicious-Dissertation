@@ -8,4 +8,4 @@ Required logical roles:
 - Xen Orchestra management/orchestration;
 - management and service/test network roles separated where feasible.
 
-This directory intentionally contains no guessed IP addresses, VLAN IDs, storage repositories, credentials or production details.
+This directory intentionally contains no guessed IP addresses, VLAN IDs, storage repositories, credentials or production details. Environment-specific values are recorded only after the controlled lab is provisioned and verified.

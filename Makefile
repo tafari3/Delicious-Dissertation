@@ -1,7 +1,8 @@
 UV ?= uv
 .PHONY: bootstrap format lint typecheck test verify app labs-up labs-down migrate secret-scan
 bootstrap:
-	$(UV) sync --extra dev
+	mkdir -p .data
+	$(UV) sync --frozen --extra dev
 	$(UV) run alembic upgrade head
 format:
 	$(UV) run ruff format .
@@ -17,6 +18,7 @@ secret-scan:
 	$(UV) run python scripts/secret_scan.py
 verify: lint typecheck test secret-scan
 migrate:
+	mkdir -p .data
 	$(UV) run alembic upgrade head
 app:
 	$(UV) run uvicorn delicious_scanner.app:app --host 127.0.0.1 --port 8000 --reload
