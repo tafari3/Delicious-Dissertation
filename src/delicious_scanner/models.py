@@ -57,8 +57,34 @@ class Scan(Base):
     profile: Mapped[str] = mapped_column(String(50), default="safe-read-only")
     state: Mapped[str] = mapped_column(String(30), default="PLANNED")
     request_count: Mapped[int] = mapped_column(Integer, default=0)
+    endpoint_count: Mapped[int] = mapped_column(Integer, default=0)
+    finding_count: Mapped[int] = mapped_column(Integer, default=0)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     project: Mapped[Project] = relationship(back_populates="scans")
     target: Mapped[Target] = relationship(back_populates="scans")
+    findings: Mapped[list[Finding]] = relationship(
+        back_populates="scan", cascade="all, delete-orphan"
+    )
+
+
+class Finding(Base):
+    __tablename__ = "findings"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    scan_id: Mapped[int] = mapped_column(ForeignKey("scans.id", ondelete="CASCADE"))
+    rule_id: Mapped[str] = mapped_column(String(80))
+    severity: Mapped[str] = mapped_column(String(20))
+    confidence: Mapped[str] = mapped_column(String(20))
+    state: Mapped[str] = mapped_column(String(30), default="CONFIRMED")
+    method: Mapped[str] = mapped_column(String(12), default="GET")
+    endpoint: Mapped[str] = mapped_column(String(1024))
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(Text)
+    evidence_json: Mapped[str] = mapped_column(Text, default="{}")
+    remediation: Mapped[str] = mapped_column(Text, default="")
+    owasp: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    cwe: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    scan: Mapped[Scan] = relationship(back_populates="findings")

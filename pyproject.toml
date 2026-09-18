@@ -15,6 +15,7 @@ dependencies = [
   "jinja2==3.1.6",
   "pydantic-settings==2.10.1",
   "python-multipart==0.0.20",
+  "reportlab==4.4.3",
   "sqlalchemy==2.0.43",
   "typer==0.16.1",
   "uvicorn[standard]==0.35.0",
@@ -46,6 +47,14 @@ strict = true
 packages = ["delicious_scanner"]
 mypy_path = "src"
 
+[dependency-groups]
+dev = [
+    "types-reportlab>=5.0.0.20260911",
+]
+
 [tool.ruff.lint.per-file-ignores]
 "src/delicious_scanner/api.py" = ["B008"]
 "src/delicious_scanner/web/routes.py" = ["B008"]
+"src/delicious_scanner/services/scanner.py" = ["E501"]
+"src/delicious_scanner/services/reports.py" = ["E501"]
+"migrations/versions/0002_scanning_reporting.py" = ["E501"]

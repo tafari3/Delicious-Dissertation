@@ -12,7 +12,7 @@ class PreflightResult:
 
 
 def run_preflight(target: Target, profile: str) -> PreflightResult:
-    checks = [
+    checks: list[tuple[str, str, bool]] = [
         ("Explicit target", target.host, bool(target.host.strip())),
         ("Scheme", target.scheme, target.scheme in {"http", "https"}),
         ("Port", str(target.port), 1 <= target.port <= 65535),
@@ -22,18 +22,21 @@ def run_preflight(target: Target, profile: str) -> PreflightResult:
             profile in {"safe-read-only", "controlled-lab-full", "authorised-zchpc"},
         ),
     ]
-    operational = profile == "authorised-zchpc" or target.environment_class == "authorised-zchpc"
-    if operational:
-        checks += [
+    controlled = target.environment_class == "controlled-cloud"
+    if not controlled:
+        checks.append(
             (
                 "Authorisation reference",
                 target.authorisation_reference or "Missing",
                 bool(target.authorisation_reference),
-            ),
-            ("Mutation tests", "disabled", True),
-            ("Resource-control tests", "disabled", True),
+            )
+        )
+    checks.extend(
+        [
+            ("Mutation tests", "disabled in Full Scan", True),
+            ("Resource-control tests", "disabled in Full Scan", True),
+            ("Exact-host scope", "same registered host and port only", True),
+            ("Request budget", "maximum 500 requests", True),
         ]
-    else:
-        checks += [("Default mutation policy", "disabled unless controlled lab", True)]
-    checks += [("Network execution", "locked until P4 scope engine", False)]
+    )
     return PreflightResult(ok=all(item[2] for item in checks), checks=tuple(checks))
